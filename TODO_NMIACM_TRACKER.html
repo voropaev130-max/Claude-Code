@@ -48,6 +48,16 @@
   }
   .header .subtitle{font-size:.95rem;color:var(--text-dim)}
 
+  /* Connection indicator */
+  .connection-status{
+    display:inline-block;
+    padding:.2rem .7rem;border-radius:12px;
+    font-size:.7rem;font-weight:700;
+    margin-top:.4rem;
+  }
+  .connection-status.online{background:rgba(67,233,123,.2);color:var(--success)}
+  .connection-status.offline{background:rgba(255,101,132,.2);color:var(--accent2)}
+
   /* Stats bar */
   .stats-bar{
     display:flex;flex-wrap:wrap;gap:1rem;justify-content:center;
@@ -225,6 +235,23 @@
   .btn-reset:hover{background:rgba(245,54,92,.3)}
   .btn-export{background:rgba(67,233,123,.2);color:var(--success)}
   .btn-export:hover{background:rgba(67,233,123,.35)}
+  .btn-sync{background:rgba(0,201,255,.2);color:var(--accent5)}
+  .btn-sync:hover{background:rgba(0,201,255,.35)}
+
+  /* Toast notification */
+  .toast{
+    position:fixed;bottom:2rem;right:2rem;
+    background:var(--card);border:1px solid var(--accent);
+    color:var(--text);padding:.8rem 1.4rem;
+    border-radius:10px;font-size:.85rem;
+    box-shadow:0 8px 30px rgba(0,0,0,.4);
+    transform:translateY(100px);opacity:0;
+    transition:all .3s;z-index:10000;
+    pointer-events:none;
+  }
+  .toast.show{transform:translateY(0);opacity:1}
+  .toast.success{border-color:var(--success)}
+  .toast.error{border-color:var(--accent2)}
 
   /* Footer */
   .footer{
@@ -244,6 +271,7 @@
     .phase-header{padding:.8rem}
     .stats-bar{gap:.5rem}
     .stat-chip{font-size:.75rem;padding:.3rem .7rem}
+    .toast{bottom:1rem;right:1rem;left:1rem}
   }
 </style>
 </head>
@@ -254,6 +282,7 @@
 <div class="header">
   <h1>NMIACM — TODO Трекер</h1>
   <p class="subtitle">Интерактивный трекер внедрения методологии NMIACM</p>
+  <div class="connection-status offline" id="conn-status">OFFLINE — localStorage</div>
   <div class="stats-bar">
     <div class="stat-chip" id="stat-total">Всего: 0</div>
     <div class="stat-chip completed-chip" id="stat-done">Выполнено: 0</div>
@@ -270,216 +299,248 @@
 <div class="controls">
   <button class="btn btn-expand" onclick="toggleAll(true)">Развернуть всё</button>
   <button class="btn btn-collapse" onclick="toggleAll(false)">Свернуть всё</button>
-  <button class="btn btn-export" onclick="exportProgress()">Экспорт прогресса</button>
-  <button class="btn btn-reset" onclick="resetAll()">Сбросить прогресс</button>
+  <button class="btn btn-sync" onclick="syncFromServer()">Синхронизация</button>
+  <button class="btn btn-export" onclick="exportProgress()">Экспорт</button>
+  <button class="btn btn-reset" onclick="resetAll()">Сброс</button>
 </div>
 
 <div class="container" id="app"></div>
 
+<div class="toast" id="toast"></div>
+
 <div class="footer">
-  NMIACM TODO Tracker &mdash; Данные сохраняются в вашем браузере (localStorage)
+  NMIACM TODO Tracker — Данные: сервер (API) + localStorage (fallback)
 </div>
 
 <script>
-const DATA = [
+/* ─── Default data (fallback for offline / file:// mode) ─── */
+const DEFAULT_DATA = [
   {
     id: "phase1",
     title: "Фаза 1 — Подготовка и анализ",
-    icon: "🔍",
-    color: "purple",
+    icon: "🔍", color: "purple",
     stages: [
-      {
-        name: "Анализ текущего состояния",
-        tasks: [
-          "Провести аудит существующих процессов",
-          "Составить карту текущих workflow",
-          "Определить болевые точки и узкие места",
-          "Провести интервью с командой (5+ человек)",
-          "Собрать метрики текущей производительности",
-          "Документировать существующие инструменты и стек"
-        ]
-      },
-      {
-        name: "Планирование внедрения",
-        tasks: [
-          "Определить цели и KPI для внедрения",
-          "Составить дорожную карту на 3 месяца",
-          "Выделить бюджет и ресурсы",
-          "Назначить ответственных за каждый этап",
-          "Подготовить план коммуникации с командой"
-        ]
-      }
+      { name: "Анализ текущего состояния", tasks: [
+        "Провести аудит существующих процессов",
+        "Составить карту текущих workflow",
+        "Определить болевые точки и узкие места",
+        "Провести интервью с командой (5+ человек)",
+        "Собрать метрики текущей производительности",
+        "Документировать существующие инструменты и стек"
+      ]},
+      { name: "Планирование внедрения", tasks: [
+        "Определить цели и KPI для внедрения",
+        "Составить дорожную карту на 3 месяца",
+        "Выделить бюджет и ресурсы",
+        "Назначить ответственных за каждый этап",
+        "Подготовить план коммуникации с командой"
+      ]}
     ]
   },
   {
     id: "phase2",
     title: "Фаза 2 — Настройка инфраструктуры",
-    icon: "⚙️",
-    color: "pink",
+    icon: "⚙️", color: "pink",
     stages: [
-      {
-        name: "Техническая подготовка",
-        tasks: [
-          "Настроить систему контроля версий (Git)",
-          "Развернуть CI/CD пайплайн",
-          "Настроить автоматическое тестирование",
-          "Подготовить staging-окружение",
-          "Настроить мониторинг и алертинг",
-          "Внедрить линтеры и форматтеры кода"
-        ]
-      },
-      {
-        name: "Инструменты коммуникации",
-        tasks: [
-          "Настроить каналы в мессенджере для команды",
-          "Внедрить систему управления задачами",
-          "Настроить базу знаний / wiki",
-          "Создать шаблоны для задач и багов"
-        ]
-      }
+      { name: "Техническая подготовка", tasks: [
+        "Настроить систему контроля версий (Git)",
+        "Развернуть CI/CD пайплайн",
+        "Настроить автоматическое тестирование",
+        "Подготовить staging-окружение",
+        "Настроить мониторинг и алертинг",
+        "Внедрить линтеры и форматтеры кода"
+      ]},
+      { name: "Инструменты коммуникации", tasks: [
+        "Настроить каналы в мессенджере для команды",
+        "Внедрить систему управления задачами",
+        "Настроить базу знаний / wiki",
+        "Создать шаблоны для задач и багов"
+      ]}
     ]
   },
   {
     id: "phase3",
     title: "Фаза 3 — Процессы и стандарты",
-    icon: "📋",
-    color: "green",
+    icon: "📋", color: "green",
     stages: [
-      {
-        name: "Стандарты разработки",
-        tasks: [
-          "Написать coding guidelines",
-          "Определить стратегию ветвления (branching strategy)",
-          "Стандартизировать формат коммитов",
-          "Создать шаблоны для code review",
-          "Определить Definition of Done",
-          "Внедрить парное программирование (pair programming)"
-        ]
-      },
-      {
-        name: "Процессы управления",
-        tasks: [
-          "Внедрить ежедневные стендапы",
-          "Настроить спринт-планирование",
-          "Ввести ретроспективы каждые 2 недели",
-          "Создать процесс приоритизации задач",
-          "Определить SLA для разных типов задач"
-        ]
-      }
+      { name: "Стандарты разработки", tasks: [
+        "Написать coding guidelines",
+        "Определить стратегию ветвления (branching strategy)",
+        "Стандартизировать формат коммитов",
+        "Создать шаблоны для code review",
+        "Определить Definition of Done",
+        "Внедрить парное программирование (pair programming)"
+      ]},
+      { name: "Процессы управления", tasks: [
+        "Внедрить ежедневные стендапы",
+        "Настроить спринт-планирование",
+        "Ввести ретроспективы каждые 2 недели",
+        "Создать процесс приоритизации задач",
+        "Определить SLA для разных типов задач"
+      ]}
     ]
   },
   {
     id: "phase4",
     title: "Фаза 4 — Обучение команды",
-    icon: "🎓",
-    color: "orange",
+    icon: "🎓", color: "orange",
     stages: [
-      {
-        name: "Подготовка материалов",
-        tasks: [
-          "Создать обучающие материалы по методологии",
-          "Записать видео-туториалы (3+ штуки)",
-          "Подготовить практические задания",
-          "Составить FAQ по частым вопросам"
-        ]
-      },
-      {
-        name: "Проведение обучения",
-        tasks: [
-          "Провести вводный воркшоп для всей команды",
-          "Провести практические сессии по группам",
-          "Назначить менторов для новичков",
-          "Организовать Q&A сессии",
-          "Оценить уровень усвоения материала"
-        ]
-      }
+      { name: "Подготовка материалов", tasks: [
+        "Создать обучающие материалы по методологии",
+        "Записать видео-туториалы (3+ штуки)",
+        "Подготовить практические задания",
+        "Составить FAQ по частым вопросам"
+      ]},
+      { name: "Проведение обучения", tasks: [
+        "Провести вводный воркшоп для всей команды",
+        "Провести практические сессии по группам",
+        "Назначить менторов для новичков",
+        "Организовать Q&A сессии",
+        "Оценить уровень усвоения материала"
+      ]}
     ]
   },
   {
     id: "phase5",
     title: "Фаза 5 — Пилотный запуск",
-    icon: "🚀",
-    color: "cyan",
+    icon: "🚀", color: "cyan",
     stages: [
-      {
-        name: "Пилотный проект",
-        tasks: [
-          "Выбрать пилотный проект для внедрения",
-          "Сформировать пилотную команду (3-5 человек)",
-          "Применить все процессы на пилотном проекте",
-          "Собирать обратную связь ежедневно",
-          "Фиксировать проблемы и блокеры",
-          "Адаптировать процессы на основе фидбека"
-        ]
-      },
-      {
-        name: "Оценка результатов пилота",
-        tasks: [
-          "Сравнить метрики до/после внедрения",
-          "Провести ретроспективу пилотного проекта",
-          "Подготовить отчёт с выводами",
-          "Определить необходимые корректировки"
-        ]
-      }
+      { name: "Пилотный проект", tasks: [
+        "Выбрать пилотный проект для внедрения",
+        "Сформировать пилотную команду (3-5 человек)",
+        "Применить все процессы на пилотном проекте",
+        "Собирать обратную связь ежедневно",
+        "Фиксировать проблемы и блокеры",
+        "Адаптировать процессы на основе фидбека"
+      ]},
+      { name: "Оценка результатов пилота", tasks: [
+        "Сравнить метрики до/после внедрения",
+        "Провести ретроспективу пилотного проекта",
+        "Подготовить отчёт с выводами",
+        "Определить необходимые корректировки"
+      ]}
     ]
   },
   {
     id: "phase6",
     title: "Фаза 6 — Масштабирование",
-    icon: "📈",
-    color: "red",
+    icon: "📈", color: "red",
     stages: [
-      {
-        name: "Расширение на всю команду",
-        tasks: [
-          "Разработать план поэтапного масштабирования",
-          "Внедрить процессы в следующую команду/проект",
-          "Настроить кросс-командную синхронизацию",
-          "Автоматизировать повторяющиеся процессы",
-          "Обновить документацию по результатам пилота"
-        ]
-      }
+      { name: "Расширение на всю команду", tasks: [
+        "Разработать план поэтапного масштабирования",
+        "Внедрить процессы в следующую команду/проект",
+        "Настроить кросс-командную синхронизацию",
+        "Автоматизировать повторяющиеся процессы",
+        "Обновить документацию по результатам пилота"
+      ]}
     ]
   },
   {
     id: "phase7",
     title: "Фаза 7 — Мониторинг и улучшение",
-    icon: "🔄",
-    color: "teal",
+    icon: "🔄", color: "teal",
     stages: [
-      {
-        name: "Непрерывное улучшение",
-        tasks: [
-          "Настроить дашборд с метриками эффективности",
-          "Проводить ежемесячные обзоры процессов",
-          "Собирать и анализировать обратную связь",
-          "Внедрять улучшения итеративно",
-          "Документировать извлечённые уроки (lessons learned)",
-          "Отмечать успехи и достижения команды"
-        ]
-      }
+      { name: "Непрерывное улучшение", tasks: [
+        "Настроить дашборд с метриками эффективности",
+        "Проводить ежемесячные обзоры процессов",
+        "Собирать и анализировать обратную связь",
+        "Внедрять улучшения итеративно",
+        "Документировать извлечённые уроки (lessons learned)",
+        "Отмечать успехи и достижения команды"
+      ]}
     ]
   }
 ];
 
-const STORAGE_KEY = "nmiacm_tracker_v1";
+/* ─── State management (hybrid: API + localStorage) ─── */
 
-function load() {
+const STORAGE_KEY = "nmiacm_tracker_v2";
+let API_BASE = "";  // Will be set relative to current origin
+let serverOnline = false;
+let DATA = DEFAULT_DATA;
+
+function showToast(msg, type) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.className = "toast show " + (type || "");
+  setTimeout(() => t.className = "toast", 2500);
+}
+
+function setConnectionStatus(online) {
+  serverOnline = online;
+  const el = document.getElementById("conn-status");
+  if (online) {
+    el.textContent = "ONLINE — сервер";
+    el.className = "connection-status online";
+  } else {
+    el.textContent = "OFFLINE — localStorage";
+    el.className = "connection-status offline";
+  }
+}
+
+async function apiCall(endpoint, method, body) {
+  try {
+    const opts = { method, headers: { "Content-Type": "application/json" } };
+    if (body) opts.body = JSON.stringify(body);
+    const resp = await fetch(API_BASE + endpoint, opts);
+    if (!resp.ok) throw new Error("HTTP " + resp.status);
+    return await resp.json();
+  } catch (e) {
+    return null;
+  }
+}
+
+/* Load from localStorage (always available) */
+function loadLocal() {
   try {
     return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
   } catch { return {}; }
 }
-
-function save(state) {
+function saveLocal(state) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 }
 
 function getState() {
-  const s = load();
+  const s = loadLocal();
   if (!s.checked) s.checked = {};
   if (!s.open) s.open = {};
   return s;
 }
+
+/* ─── Server sync ─── */
+
+async function checkServer() {
+  const result = await apiCall("/api/stats", "GET");
+  if (result && typeof result.total === "number") {
+    setConnectionStatus(true);
+    return true;
+  }
+  setConnectionStatus(false);
+  return false;
+}
+
+async function syncFromServer() {
+  const data = await apiCall("/api/tasks", "GET");
+  if (data && data.phases) {
+    DATA = data.phases;
+    const localState = getState();
+    if (data.checked) localState.checked = data.checked;
+    saveLocal(localState);
+    setConnectionStatus(true);
+    showToast("Синхронизировано с сервером!", "success");
+    render();
+  } else {
+    setConnectionStatus(false);
+    showToast("Сервер недоступен — работаем оффлайн", "error");
+  }
+}
+
+async function syncToggleToServer(taskId) {
+  if (!serverOnline) return;
+  await apiCall("/api/tasks/toggle", "POST", { task_id: taskId });
+}
+
+/* ─── Rendering ─── */
 
 function render() {
   const state = getState();
@@ -498,18 +559,18 @@ function render() {
 
     let bodyHTML = '<div class="phase-body"><div class="phase-body-inner">';
     phase.stages.forEach(stage => {
-      bodyHTML += `<div class="stage"><div class="stage-title">${stage.name}</div>`;
+      bodyHTML += '<div class="stage"><div class="stage-title">' + escapeHtml(stage.name) + '</div>';
       stage.tasks.forEach((task, ti) => {
-        const taskId = `${phase.id}_${stage.name}_${ti}`;
+        const taskId = phase.id + "_" + stage.name + "_" + ti;
         const checked = !!state.checked[taskId];
         phaseTasks++;
         totalTasks++;
         if (checked) { phaseDone++; doneTasks++; }
-        bodyHTML += `
-          <div class="task ${checked ? 'done' : ''}" onclick="toggle('${taskId}',this)">
-            <input type="checkbox" ${checked ? 'checked' : ''} tabindex="-1">
-            <span class="task-label">${task}</span>
-          </div>`;
+        bodyHTML +=
+          '<div class="task ' + (checked ? 'done' : '') + '" onclick="toggle(\'' + escapeAttr(taskId) + '\')">' +
+            '<input type="checkbox" ' + (checked ? 'checked' : '') + ' tabindex="-1">' +
+            '<span class="task-label">' + escapeHtml(task) + '</span>' +
+          '</div>';
       });
       bodyHTML += '</div>';
     });
@@ -518,17 +579,17 @@ function render() {
     const phasePct = phaseTasks ? Math.round(phaseDone / phaseTasks * 100) : 0;
     if (phasePct < 100 && !currentPhase) currentPhase = phase.title;
 
-    phaseEl.innerHTML = `
-      <div class="phase-header" onclick="togglePhase('${phase.id}',this.parentElement)">
-        <span class="phase-icon">${phase.icon}</span>
-        <span class="phase-title">${phase.title}</span>
-        <span class="phase-badge">${phaseDone}/${phaseTasks}</span>
-        <div class="phase-progress-mini">
-          <div class="phase-progress-mini-fill" style="width:${phasePct}%"></div>
-        </div>
-        <span class="phase-arrow">▶</span>
-      </div>
-      ${bodyHTML}`;
+    phaseEl.innerHTML =
+      '<div class="phase-header" onclick="togglePhase(\'' + phase.id + '\',this.parentElement)">' +
+        '<span class="phase-icon">' + phase.icon + '</span>' +
+        '<span class="phase-title">' + escapeHtml(phase.title) + '</span>' +
+        '<span class="phase-badge">' + phaseDone + '/' + phaseTasks + '</span>' +
+        '<div class="phase-progress-mini">' +
+          '<div class="phase-progress-mini-fill" style="width:' + phasePct + '%"></div>' +
+        '</div>' +
+        '<span class="phase-arrow">&#9654;</span>' +
+      '</div>' +
+      bodyHTML;
 
     app.appendChild(phaseEl);
   });
@@ -543,33 +604,48 @@ function render() {
   if (pct === 100) launchConfetti();
 }
 
-function toggle(taskId, el) {
+function escapeHtml(s) {
+  const d = document.createElement("div");
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+function escapeAttr(s) {
+  return s.replace(/'/g, "\\'").replace(/"/g, "&quot;");
+}
+
+/* ─── Actions ─── */
+
+function toggle(taskId) {
   const state = getState();
   state.checked[taskId] = !state.checked[taskId];
-  save(state);
+  saveLocal(state);
+  syncToggleToServer(taskId);
   render();
 }
 
 function togglePhase(phaseId, el) {
   const state = getState();
   state.open[phaseId] = !state.open[phaseId];
-  save(state);
-  if (el) el.classList.toggle("open");
-  const body = el ? el.querySelector(".phase-body") : null;
-  /* re-render to keep state consistent */
+  saveLocal(state);
   render();
 }
 
 function toggleAll(open) {
   const state = getState();
   DATA.forEach(p => state.open[p.id] = open);
-  save(state);
+  saveLocal(state);
   render();
 }
 
 function resetAll() {
   if (!confirm("Вы уверены? Весь прогресс будет сброшен!")) return;
   localStorage.removeItem(STORAGE_KEY);
+  if (serverOnline) {
+    apiCall("/api/tasks/reset", "POST").then(() => {
+      showToast("Прогресс сброшен (сервер + локально)", "success");
+    });
+  }
   render();
 }
 
@@ -578,25 +654,26 @@ function exportProgress() {
   let totalTasks = 0, doneTasks = 0;
   let text = "NMIACM TODO Tracker — Экспорт прогресса\n";
   text += "Дата: " + new Date().toLocaleString("ru-RU") + "\n";
+  text += "Режим: " + (serverOnline ? "Сервер" : "Оффлайн") + "\n";
   text += "═".repeat(50) + "\n\n";
 
   DATA.forEach(phase => {
     let pt = 0, pd = 0;
     phase.stages.forEach(stage => {
       stage.tasks.forEach((task, ti) => {
-        const taskId = `${phase.id}_${stage.name}_${ti}`;
+        const taskId = phase.id + "_" + stage.name + "_" + ti;
         pt++; totalTasks++;
         if (state.checked[taskId]) { pd++; doneTasks++; }
       });
     });
     const pct = pt ? Math.round(pd / pt * 100) : 0;
-    text += `${phase.icon} ${phase.title}  [${pd}/${pt}] ${pct}%\n`;
+    text += phase.icon + " " + phase.title + "  [" + pd + "/" + pt + "] " + pct + "%\n";
     phase.stages.forEach(stage => {
-      text += `  ── ${stage.name}\n`;
+      text += "  ── " + stage.name + "\n";
       stage.tasks.forEach((task, ti) => {
-        const taskId = `${phase.id}_${stage.name}_${ti}`;
+        const taskId = phase.id + "_" + stage.name + "_" + ti;
         const mark = state.checked[taskId] ? "✅" : "⬜";
-        text += `     ${mark} ${task}\n`;
+        text += "     " + mark + " " + task + "\n";
       });
     });
     text += "\n";
@@ -604,7 +681,7 @@ function exportProgress() {
 
   const pct = totalTasks ? Math.round(doneTasks / totalTasks * 100) : 0;
   text += "═".repeat(50) + "\n";
-  text += `Общий прогресс: ${doneTasks}/${totalTasks} (${pct}%)\n`;
+  text += "Общий прогресс: " + doneTasks + "/" + totalTasks + " (" + pct + "%)\n";
 
   const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
   const a = document.createElement("a");
@@ -614,7 +691,8 @@ function exportProgress() {
   URL.revokeObjectURL(a.href);
 }
 
-/* Mini confetti for 100% completion */
+/* ─── Confetti ─── */
+
 function launchConfetti() {
   const canvas = document.getElementById("confetti");
   const ctx = canvas.getContext("2d");
@@ -659,7 +737,37 @@ function launchConfetti() {
   draw();
 }
 
-render();
+/* ─── Init ─── */
+
+(async function init() {
+  /* Try to connect to server API */
+  const online = await checkServer();
+  if (online) {
+    /* Fetch full state from server */
+    const data = await apiCall("/api/tasks", "GET");
+    if (data && data.phases) {
+      DATA = data.phases;
+      const localState = getState();
+      if (data.checked) localState.checked = data.checked;
+      saveLocal(localState);
+    }
+  }
+  render();
+
+  /* Auto-sync every 30s if server is available */
+  setInterval(async () => {
+    if (await checkServer()) {
+      /* Silent background sync — pull latest checked state from server */
+      const data = await apiCall("/api/tasks", "GET");
+      if (data && data.checked) {
+        const localState = getState();
+        localState.checked = data.checked;
+        saveLocal(localState);
+        render();
+      }
+    }
+  }, 30000);
+})();
 </script>
 </body>
 </html>

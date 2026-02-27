@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NMIACM — TODO Трекер Методологии</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#0f0f1a;
+    --card:#1a1a2e;
+    --card-hover:#222240;
+    --accent:#6c63ff;
+    --accent2:#ff6584;
+    --accent3:#43e97b;
+    --accent4:#f7971e;
+    --accent5:#00c9ff;
+    --text:#e8e8f0;
+    --text-dim:#8888aa;
+    --border:#2a2a44;
+    --success:#43e97b;
+    --radius:12px;
+  }
+  html{scroll-behavior:smooth}
+  body{
+    font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    min-height:100vh;
+    line-height:1.6;
+  }
+
+  /* Header */
+  .header{
+    background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);
+    padding:2rem 1.5rem;
+    text-align:center;
+    border-bottom:2px solid var(--accent);
+    position:sticky;top:0;z-index:100;
+  }
+  .header h1{
+    font-size:clamp(1.4rem,4vw,2.2rem);
+    background:linear-gradient(90deg,var(--accent),var(--accent2),var(--accent5));
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+    background-clip:text;
+    margin-bottom:.5rem;
+    letter-spacing:1px;
+  }
+  .header .subtitle{font-size:.95rem;color:var(--text-dim)}
+
+  /* Stats bar */
+  .stats-bar{
+    display:flex;flex-wrap:wrap;gap:1rem;justify-content:center;
+    margin-top:1rem;
+  }
+  .stat-chip{
+    background:rgba(108,99,255,.15);
+    border:1px solid rgba(108,99,255,.3);
+    padding:.4rem 1rem;border-radius:20px;
+    font-size:.85rem;color:var(--accent);
+    font-weight:600;
+    transition:all .3s;
+  }
+  .stat-chip.completed-chip{background:rgba(67,233,123,.15);border-color:rgba(67,233,123,.3);color:var(--success)}
+  .stat-chip.phase-chip{background:rgba(255,101,132,.15);border-color:rgba(255,101,132,.3);color:var(--accent2)}
+
+  /* Global progress */
+  .global-progress{
+    max-width:700px;margin:0 auto;margin-top:1.2rem;
+  }
+  .progress-track{
+    height:14px;background:rgba(255,255,255,.08);
+    border-radius:10px;overflow:hidden;position:relative;
+  }
+  .progress-fill{
+    height:100%;border-radius:10px;
+    background:linear-gradient(90deg,var(--accent),var(--accent3));
+    transition:width .6s cubic-bezier(.25,.8,.25,1);
+    position:relative;
+  }
+  .progress-fill::after{
+    content:'';position:absolute;inset:0;
+    background:linear-gradient(90deg,transparent,rgba(255,255,255,.25),transparent);
+    animation:shimmer 2s infinite;
+  }
+  @keyframes shimmer{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+  .progress-label{
+    text-align:center;margin-top:.4rem;
+    font-size:.85rem;color:var(--text-dim);font-weight:600;
+  }
+  .progress-label span{color:var(--accent);font-size:1.1rem}
+
+  /* Container */
+  .container{max-width:900px;margin:0 auto;padding:1.5rem}
+
+  /* Phase card */
+  .phase{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    margin-bottom:1.2rem;
+    overflow:hidden;
+    transition:border-color .3s;
+  }
+  .phase:hover{border-color:rgba(108,99,255,.4)}
+  .phase-header{
+    padding:1rem 1.2rem;
+    cursor:pointer;
+    display:flex;align-items:center;gap:.8rem;
+    user-select:none;
+    transition:background .2s;
+  }
+  .phase-header:hover{background:var(--card-hover)}
+  .phase-icon{font-size:1.5rem;flex-shrink:0}
+  .phase-title{flex:1;font-weight:700;font-size:1.05rem}
+  .phase-badge{
+    font-size:.75rem;padding:.2rem .6rem;
+    border-radius:12px;font-weight:700;
+    white-space:nowrap;
+  }
+  .phase-arrow{
+    font-size:.9rem;transition:transform .3s;color:var(--text-dim);
+  }
+  .phase.open .phase-arrow{transform:rotate(90deg)}
+  .phase-progress-mini{
+    width:60px;height:5px;background:rgba(255,255,255,.08);
+    border-radius:4px;overflow:hidden;flex-shrink:0;
+  }
+  .phase-progress-mini-fill{
+    height:100%;border-radius:4px;
+    transition:width .4s;
+  }
+
+  /* Phase content */
+  .phase-body{
+    max-height:0;overflow:hidden;
+    transition:max-height .4s ease;
+  }
+  .phase.open .phase-body{max-height:5000px}
+  .phase-body-inner{padding:0 1.2rem 1.2rem}
+
+  /* Stage */
+  .stage{margin-top:1rem}
+  .stage-title{
+    font-size:.85rem;font-weight:700;
+    color:var(--text-dim);text-transform:uppercase;
+    letter-spacing:1px;margin-bottom:.5rem;
+    padding-bottom:.3rem;
+    border-bottom:1px solid var(--border);
+  }
+
+  /* Task */
+  .task{
+    display:flex;align-items:flex-start;gap:.7rem;
+    padding:.55rem .6rem;border-radius:8px;
+    transition:background .15s;
+    cursor:pointer;
+  }
+  .task:hover{background:rgba(255,255,255,.04)}
+  .task input[type="checkbox"]{
+    appearance:none;-webkit-appearance:none;
+    width:20px;height:20px;min-width:20px;
+    border:2px solid var(--border);border-radius:5px;
+    cursor:pointer;position:relative;
+    transition:all .2s;margin-top:2px;
+  }
+  .task input[type="checkbox"]:checked{
+    background:var(--accent);border-color:var(--accent);
+  }
+  .task input[type="checkbox"]:checked::after{
+    content:'✓';position:absolute;
+    top:50%;left:50%;transform:translate(-50%,-50%);
+    color:#fff;font-size:13px;font-weight:700;
+  }
+  .task-label{font-size:.92rem;transition:all .2s;flex:1}
+  .task.done .task-label{
+    text-decoration:line-through;
+    color:var(--text-dim);opacity:.7;
+  }
+
+  /* Phase colors */
+  .phase[data-color="purple"] .phase-header{border-left:4px solid #6c63ff}
+  .phase[data-color="purple"] .phase-badge{background:rgba(108,99,255,.2);color:#6c63ff}
+  .phase[data-color="purple"] .phase-progress-mini-fill{background:#6c63ff}
+
+  .phase[data-color="pink"] .phase-header{border-left:4px solid #ff6584}
+  .phase[data-color="pink"] .phase-badge{background:rgba(255,101,132,.2);color:#ff6584}
+  .phase[data-color="pink"] .phase-progress-mini-fill{background:#ff6584}
+
+  .phase[data-color="green"] .phase-header{border-left:4px solid #43e97b}
+  .phase[data-color="green"] .phase-badge{background:rgba(67,233,123,.2);color:#43e97b}
+  .phase[data-color="green"] .phase-progress-mini-fill{background:#43e97b}
+
+  .phase[data-color="orange"] .phase-header{border-left:4px solid #f7971e}
+  .phase[data-color="orange"] .phase-badge{background:rgba(247,151,30,.2);color:#f7971e}
+  .phase[data-color="orange"] .phase-progress-mini-fill{background:#f7971e}
+
+  .phase[data-color="cyan"] .phase-header{border-left:4px solid #00c9ff}
+  .phase[data-color="cyan"] .phase-badge{background:rgba(0,201,255,.2);color:#00c9ff}
+  .phase[data-color="cyan"] .phase-progress-mini-fill{background:#00c9ff}
+
+  .phase[data-color="red"] .phase-header{border-left:4px solid #f5365c}
+  .phase[data-color="red"] .phase-badge{background:rgba(245,54,92,.2);color:#f5365c}
+  .phase[data-color="red"] .phase-progress-mini-fill{background:#f5365c}
+
+  .phase[data-color="teal"] .phase-header{border-left:4px solid #2ed8a3}
+  .phase[data-color="teal"] .phase-badge{background:rgba(46,216,163,.2);color:#2ed8a3}
+  .phase[data-color="teal"] .phase-progress-mini-fill{background:#2ed8a3}
+
+  /* Controls */
+  .controls{
+    text-align:center;padding:1.5rem;
+    display:flex;flex-wrap:wrap;gap:.8rem;justify-content:center;
+  }
+  .btn{
+    padding:.6rem 1.4rem;border:none;border-radius:8px;
+    font-size:.85rem;font-weight:700;cursor:pointer;
+    transition:all .2s;color:#fff;
+  }
+  .btn-expand{background:rgba(108,99,255,.2);color:var(--accent)}
+  .btn-expand:hover{background:rgba(108,99,255,.35)}
+  .btn-collapse{background:rgba(255,101,132,.2);color:var(--accent2)}
+  .btn-collapse:hover{background:rgba(255,101,132,.35)}
+  .btn-reset{background:rgba(245,54,92,.15);color:#f5365c}
+  .btn-reset:hover{background:rgba(245,54,92,.3)}
+  .btn-export{background:rgba(67,233,123,.2);color:var(--success)}
+  .btn-export:hover{background:rgba(67,233,123,.35)}
+
+  /* Footer */
+  .footer{
+    text-align:center;padding:2rem 1rem;
+    color:var(--text-dim);font-size:.8rem;
+    border-top:1px solid var(--border);
+    margin-top:1rem;
+  }
+
+  /* Confetti canvas */
+  #confetti{position:fixed;inset:0;pointer-events:none;z-index:9999}
+
+  /* Responsive */
+  @media(max-width:600px){
+    .header{padding:1.2rem 1rem}
+    .container{padding:1rem .8rem}
+    .phase-header{padding:.8rem}
+    .stats-bar{gap:.5rem}
+    .stat-chip{font-size:.75rem;padding:.3rem .7rem}
+  }
+</style>
+</head>
+<body>
+
+<canvas id="confetti"></canvas>
+
+<div class="header">
+  <h1>NMIACM — TODO Трекер</h1>
+  <p class="subtitle">Интерактивный трекер внедрения методологии NMIACM</p>
+  <div class="stats-bar">
+    <div class="stat-chip" id="stat-total">Всего: 0</div>
+    <div class="stat-chip completed-chip" id="stat-done">Выполнено: 0</div>
+    <div class="stat-chip phase-chip" id="stat-phase">Текущая фаза: —</div>
+  </div>
+  <div class="global-progress">
+    <div class="progress-track">
+      <div class="progress-fill" id="global-fill" style="width:0%"></div>
+    </div>
+    <div class="progress-label"><span id="global-pct">0%</span> общий прогресс</div>
+  </div>
+</div>
+
+<div class="controls">
+  <button class="btn btn-expand" onclick="toggleAll(true)">Развернуть всё</button>
+  <button class="btn btn-collapse" onclick="toggleAll(false)">Свернуть всё</button>
+  <button class="btn btn-export" onclick="exportProgress()">Экспорт прогресса</button>
+  <button class="btn btn-reset" onclick="resetAll()">Сбросить прогресс</button>
+</div>
+
+<div class="container" id="app"></div>
+
+<div class="footer">
+  NMIACM TODO Tracker &mdash; Данные сохраняются в вашем браузере (localStorage)
+</div>
+
+<script>
+const DATA = [
+  {
+    id: "phase1",
+    title: "Фаза 1 — Подготовка и анализ",
+    icon: "🔍",
+    color: "purple",
+    stages: [
+      {
+        name: "Анализ текущего состояния",
+        tasks: [
+          "Провести аудит существующих процессов",
+          "Составить карту текущих workflow",
+          "Определить болевые точки и узкие места",
+          "Провести интервью с командой (5+ человек)",
+          "Собрать метрики текущей производительности",
+          "Документировать существующие инструменты и стек"
+        ]
+      },
+      {
+        name: "Планирование внедрения",
+        tasks: [
+          "Определить цели и KPI для внедрения",
+          "Составить дорожную карту на 3 месяца",
+          "Выделить бюджет и ресурсы",
+          "Назначить ответственных за каждый этап",
+          "Подготовить план коммуникации с командой"
+        ]
+      }
+    ]
+  },
+  {
+    id: "phase2",
+    title: "Фаза 2 — Настройка инфраструктуры",
+    icon: "⚙️",
+    color: "pink",
+    stages: [
+      {
+        name: "Техническая подготовка",
+        tasks: [
+          "Настроить систему контроля версий (Git)",
+          "Развернуть CI/CD пайплайн",
+          "Настроить автоматическое тестирование",
+          "Подготовить staging-окружение",
+          "Настроить мониторинг и алертинг",
+          "Внедрить линтеры и форматтеры кода"
+        ]
+      },
+      {
+        name: "Инструменты коммуникации",
+        tasks: [
+          "Настроить каналы в мессенджере для команды",
+          "Внедрить систему управления задачами",
+          "Настроить базу знаний / wiki",
+          "Создать шаблоны для задач и багов"
+        ]
+      }
+    ]
+  },
+  {
+    id: "phase3",
+    title: "Фаза 3 — Процессы и стандарты",
+    icon: "📋",
+    color: "green",
+    stages: [
+      {
+        name: "Стандарты разработки",
+        tasks: [
+          "Написать coding guidelines",
+          "Определить стратегию ветвления (branching strategy)",
+          "Стандартизировать формат коммитов",
+          "Создать шаблоны для code review",
+          "Определить Definition of Done",
+          "Внедрить парное программирование (pair programming)"
+        ]
+      },
+      {
+        name: "Процессы управления",
+        tasks: [
+          "Внедрить ежедневные стендапы",
+          "Настроить спринт-планирование",
+          "Ввести ретроспективы каждые 2 недели",
+          "Создать процесс приоритизации задач",
+          "Определить SLA для разных типов задач"
+        ]
+      }
+    ]
+  },
+  {
+    id: "phase4",
+    title: "Фаза 4 — Обучение команды",
+    icon: "🎓",
+    color: "orange",
+    stages: [
+      {
+        name: "Подготовка материалов",
+        tasks: [
+          "Создать обучающие материалы по методологии",
+          "Записать видео-туториалы (3+ штуки)",
+          "Подготовить практические задания",
+          "Составить FAQ по частым вопросам"
+        ]
+      },
+      {
+        name: "Проведение обучения",
+        tasks: [
+          "Провести вводный воркшоп для всей команды",
+          "Провести практические сессии по группам",
+          "Назначить менторов для новичков",
+          "Организовать Q&A сессии",
+          "Оценить уровень усвоения материала"
+        ]
+      }
+    ]
+  },
+  {
+    id: "phase5",
+    title: "Фаза 5 — Пилотный запуск",
+    icon: "🚀",
+    color: "cyan",
+    stages: [
+      {
+        name: "Пилотный проект",
+        tasks: [
+          "Выбрать пилотный проект для внедрения",
+          "Сформировать пилотную команду (3-5 человек)",
+          "Применить все процессы на пилотном проекте",
+          "Собирать обратную связь ежедневно",
+          "Фиксировать проблемы и блокеры",
+          "Адаптировать процессы на основе фидбека"
+        ]
+      },
+      {
+        name: "Оценка результатов пилота",
+        tasks: [
+          "Сравнить метрики до/после внедрения",
+          "Провести ретроспективу пилотного проекта",
+          "Подготовить отчёт с выводами",
+          "Определить необходимые корректировки"
+        ]
+      }
+    ]
+  },
+  {
+    id: "phase6",
+    title: "Фаза 6 — Масштабирование",
+    icon: "📈",
+    color: "red",
+    stages: [
+      {
+        name: "Расширение на всю команду",
+        tasks: [
+          "Разработать план поэтапного масштабирования",
+          "Внедрить процессы в следующую команду/проект",
+          "Настроить кросс-командную синхронизацию",
+          "Автоматизировать повторяющиеся процессы",
+          "Обновить документацию по результатам пилота"
+        ]
+      }
+    ]
+  },
+  {
+    id: "phase7",
+    title: "Фаза 7 — Мониторинг и улучшение",
+    icon: "🔄",
+    color: "teal",
+    stages: [
+      {
+        name: "Непрерывное улучшение",
+        tasks: [
+          "Настроить дашборд с метриками эффективности",
+          "Проводить ежемесячные обзоры процессов",
+          "Собирать и анализировать обратную связь",
+          "Внедрять улучшения итеративно",
+          "Документировать извлечённые уроки (lessons learned)",
+          "Отмечать успехи и достижения команды"
+        ]
+      }
+    ]
+  }
+];
+
+const STORAGE_KEY = "nmiacm_tracker_v1";
+
+function load() {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+  } catch { return {}; }
+}
+
+function save(state) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function getState() {
+  const s = load();
+  if (!s.checked) s.checked = {};
+  if (!s.open) s.open = {};
+  return s;
+}
+
+function render() {
+  const state = getState();
+  const app = document.getElementById("app");
+  app.innerHTML = "";
+
+  let totalTasks = 0, doneTasks = 0;
+  let currentPhase = null;
+
+  DATA.forEach(phase => {
+    const phaseEl = document.createElement("div");
+    phaseEl.className = "phase" + (state.open[phase.id] ? " open" : "");
+    phaseEl.dataset.color = phase.color;
+
+    let phaseTasks = 0, phaseDone = 0;
+
+    let bodyHTML = '<div class="phase-body"><div class="phase-body-inner">';
+    phase.stages.forEach(stage => {
+      bodyHTML += `<div class="stage"><div class="stage-title">${stage.name}</div>`;
+      stage.tasks.forEach((task, ti) => {
+        const taskId = `${phase.id}_${stage.name}_${ti}`;
+        const checked = !!state.checked[taskId];
+        phaseTasks++;
+        totalTasks++;
+        if (checked) { phaseDone++; doneTasks++; }
+        bodyHTML += `
+          <div class="task ${checked ? 'done' : ''}" onclick="toggle('${taskId}',this)">
+            <input type="checkbox" ${checked ? 'checked' : ''} tabindex="-1">
+            <span class="task-label">${task}</span>
+          </div>`;
+      });
+      bodyHTML += '</div>';
+    });
+    bodyHTML += '</div></div>';
+
+    const phasePct = phaseTasks ? Math.round(phaseDone / phaseTasks * 100) : 0;
+    if (phasePct < 100 && !currentPhase) currentPhase = phase.title;
+
+    phaseEl.innerHTML = `
+      <div class="phase-header" onclick="togglePhase('${phase.id}',this.parentElement)">
+        <span class="phase-icon">${phase.icon}</span>
+        <span class="phase-title">${phase.title}</span>
+        <span class="phase-badge">${phaseDone}/${phaseTasks}</span>
+        <div class="phase-progress-mini">
+          <div class="phase-progress-mini-fill" style="width:${phasePct}%"></div>
+        </div>
+        <span class="phase-arrow">▶</span>
+      </div>
+      ${bodyHTML}`;
+
+    app.appendChild(phaseEl);
+  });
+
+  const pct = totalTasks ? Math.round(doneTasks / totalTasks * 100) : 0;
+  document.getElementById("global-fill").style.width = pct + "%";
+  document.getElementById("global-pct").textContent = pct + "%";
+  document.getElementById("stat-total").textContent = "Всего: " + totalTasks;
+  document.getElementById("stat-done").textContent = "Выполнено: " + doneTasks;
+  document.getElementById("stat-phase").textContent = "Текущая фаза: " + (currentPhase || "Все выполнено!");
+
+  if (pct === 100) launchConfetti();
+}
+
+function toggle(taskId, el) {
+  const state = getState();
+  state.checked[taskId] = !state.checked[taskId];
+  save(state);
+  render();
+}
+
+function togglePhase(phaseId, el) {
+  const state = getState();
+  state.open[phaseId] = !state.open[phaseId];
+  save(state);
+  if (el) el.classList.toggle("open");
+  const body = el ? el.querySelector(".phase-body") : null;
+  /* re-render to keep state consistent */
+  render();
+}
+
+function toggleAll(open) {
+  const state = getState();
+  DATA.forEach(p => state.open[p.id] = open);
+  save(state);
+  render();
+}
+
+function resetAll() {
+  if (!confirm("Вы уверены? Весь прогресс будет сброшен!")) return;
+  localStorage.removeItem(STORAGE_KEY);
+  render();
+}
+
+function exportProgress() {
+  const state = getState();
+  let totalTasks = 0, doneTasks = 0;
+  let text = "NMIACM TODO Tracker — Экспорт прогресса\n";
+  text += "Дата: " + new Date().toLocaleString("ru-RU") + "\n";
+  text += "═".repeat(50) + "\n\n";
+
+  DATA.forEach(phase => {
+    let pt = 0, pd = 0;
+    phase.stages.forEach(stage => {
+      stage.tasks.forEach((task, ti) => {
+        const taskId = `${phase.id}_${stage.name}_${ti}`;
+        pt++; totalTasks++;
+        if (state.checked[taskId]) { pd++; doneTasks++; }
+      });
+    });
+    const pct = pt ? Math.round(pd / pt * 100) : 0;
+    text += `${phase.icon} ${phase.title}  [${pd}/${pt}] ${pct}%\n`;
+    phase.stages.forEach(stage => {
+      text += `  ── ${stage.name}\n`;
+      stage.tasks.forEach((task, ti) => {
+        const taskId = `${phase.id}_${stage.name}_${ti}`;
+        const mark = state.checked[taskId] ? "✅" : "⬜";
+        text += `     ${mark} ${task}\n`;
+      });
+    });
+    text += "\n";
+  });
+
+  const pct = totalTasks ? Math.round(doneTasks / totalTasks * 100) : 0;
+  text += "═".repeat(50) + "\n";
+  text += `Общий прогресс: ${doneTasks}/${totalTasks} (${pct}%)\n`;
+
+  const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "nmiacm_progress_" + new Date().toISOString().slice(0, 10) + ".txt";
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+/* Mini confetti for 100% completion */
+function launchConfetti() {
+  const canvas = document.getElementById("confetti");
+  const ctx = canvas.getContext("2d");
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  const pieces = [];
+  const colors = ["#6c63ff","#ff6584","#43e97b","#f7971e","#00c9ff","#f5365c"];
+  for (let i = 0; i < 150; i++) {
+    pieces.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height - canvas.height,
+      w: Math.random() * 8 + 4,
+      h: Math.random() * 6 + 3,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      vy: Math.random() * 3 + 2,
+      vx: (Math.random() - 0.5) * 2,
+      rot: Math.random() * 360,
+      rv: (Math.random() - 0.5) * 10
+    });
+  }
+  let frame = 0;
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    let alive = false;
+    pieces.forEach(p => {
+      if (p.y > canvas.height + 20) return;
+      alive = true;
+      p.y += p.vy;
+      p.x += p.vx;
+      p.rot += p.rv;
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot * Math.PI / 180);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+      ctx.restore();
+    });
+    frame++;
+    if (alive && frame < 300) requestAnimationFrame(draw);
+    else ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+  draw();
+}
+
+render();
+</script>
+</body>
+</html>

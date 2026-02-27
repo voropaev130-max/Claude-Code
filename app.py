@@ -14,13 +14,36 @@ API Endpoints:
     POST /api/reload-tasks     — Перезагрузить задачи из todo_state.json
     GET  /api/stats            — Статистика прогресса
     POST /api/tasks/bulk-update — Массовое обновление задач (для удалённого управления)
+    GET  /api/audio/status     — Проверить доступность аудио транскрипции
+    POST /api/audio/transcribe — Транскрибировать аудиофайл в текст
 """
 
 import json
 import os
+import shutil
+import tempfile
 from datetime import datetime
 from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
+
+# Audio transcription imports (optional — graceful degradation if missing)
+_audio_available = False
+_audio_missing_reason = ""
+try:
+    import speech_recognition as sr
+    from pydub import AudioSegment
+
+    if not shutil.which("flac"):
+        _audio_missing_reason = (
+            "FLAC codec not found. Install it: sudo apt-get install flac"
+        )
+    else:
+        _audio_available = True
+except ImportError as e:
+    _audio_missing_reason = (
+        f"Missing Python package: {e.name}. "
+        "Install with: pip install SpeechRecognition pydub"
+    )
 
 app = Flask(__name__, static_folder="static")
 CORS(app)
@@ -363,6 +386,97 @@ def bulk_update():
         "updated_count": len(updates),
         "message": f"Обновлено {len(updates)} задач",
     })
+
+
+# ─── Audio Transcription ─────────────────────────────────
+
+
+@app.route("/api/audio/status", methods=["GET"])
+def audio_status():
+    """Check if audio transcription is available."""
+    return jsonify({
+        "available": _audio_available,
+        "reason": _audio_missing_reason if not _audio_available else "ok",
+    })
+
+
+@app.route("/api/audio/transcribe", methods=["POST"])
+def transcribe_audio():
+    """Transcribe an uploaded audio file to text.
+
+    Accepts multipart/form-data with field 'audio' containing the file.
+    Supported formats: wav, mp3, ogg, flac, webm, m4a.
+    Optional query param: lang (default "ru-RU").
+    """
+    if not _audio_available:
+        return jsonify({
+            "error": "Audio transcription is not available",
+            "reason": _audio_missing_reason,
+            "fix": "pip install SpeechRecognition pydub && sudo apt-get install flac",
+        }), 503
+
+    if "audio" not in request.files:
+        return jsonify({"error": "No 'audio' file in request"}), 400
+
+    audio_file = request.files["audio"]
+    if audio_file.filename == "":
+        return jsonify({"error": "Empty filename"}), 400
+
+    lang = request.args.get("lang", "ru-RU")
+
+    tmp_wav = None
+    try:
+        # Save uploaded file to a temp location
+        suffix = os.path.splitext(audio_file.filename)[1].lower() or ".wav"
+        with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+            audio_file.save(tmp)
+            tmp_path = tmp.name
+
+        # Convert to WAV if necessary (pydub handles format detection)
+        if suffix != ".wav":
+            audio = AudioSegment.from_file(tmp_path)
+            tmp_wav = tmp_path + ".wav"
+            audio.export(tmp_wav, format="wav")
+        else:
+            tmp_wav = tmp_path
+            tmp_path = None  # don't double-delete
+
+        # Transcribe using Google Speech Recognition (free, no API key)
+        recognizer = sr.Recognizer()
+        with sr.AudioFile(tmp_wav) as source:
+            audio_data = recognizer.record(source)
+
+        text = recognizer.recognize_google(audio_data, language=lang)
+
+        return jsonify({
+            "text": text,
+            "lang": lang,
+            "status": "ok",
+        })
+
+    except sr.UnknownValueError:
+        return jsonify({
+            "error": "Could not understand audio",
+            "hint": "Try speaking more clearly or check microphone quality",
+        }), 422
+    except sr.RequestError as e:
+        return jsonify({
+            "error": "Speech recognition service error",
+            "details": str(e),
+        }), 502
+    except Exception as e:
+        return jsonify({
+            "error": "Transcription failed",
+            "details": str(e),
+        }), 500
+    finally:
+        # Clean up temp files
+        for path in (tmp_path, tmp_wav):
+            if path and os.path.exists(path):
+                try:
+                    os.unlink(path)
+                except OSError:
+                    pass
 
 
 # ─── Init ─────────────────────────────────────────────────

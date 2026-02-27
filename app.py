@@ -3,27 +3,64 @@ NMIACM TODO Tracker — Flask Backend
 Серверное приложение с REST API для управления задачами.
 
 Запуск:
-    pip install flask flask-cors
+    pip install flask flask-cors python-dotenv
     python app.py
+
+Авторизация:
+    POST-запросы требуют заголовок: X-API-Key: <ключ из .env>
+    GET-запросы (чтение) — открытые, без ключа.
 
 API Endpoints:
     GET  /                     — Главная страница (HTML трекер)
     GET  /api/tasks            — Получить все задачи и состояние
-    POST /api/tasks/toggle     — Переключить статус задачи
-    POST /api/tasks/reset      — Сбросить весь прогресс
-    POST /api/reload-tasks     — Перезагрузить задачи из todo_state.json
+    POST /api/tasks/toggle     — Переключить статус задачи        [API KEY]
+    POST /api/tasks/reset      — Сбросить весь прогресс            [API KEY]
+    POST /api/reload-tasks     — Перезагрузить задачи              [API KEY]
     GET  /api/stats            — Статистика прогресса
-    POST /api/tasks/bulk-update — Массовое обновление задач (для удалённого управления)
+    POST /api/tasks/bulk-update — Массовое обновление задач        [API KEY]
 """
 
 import json
 import os
 from datetime import datetime
+from functools import wraps
 from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 
 app = Flask(__name__, static_folder="static")
 CORS(app)
+
+# ─── API Key ──────────────────────────────────────────────
+
+# Load from .env file or environment variable
+_env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env")
+if os.path.exists(_env_path):
+    with open(_env_path) as _f:
+        for _line in _f:
+            _line = _line.strip()
+            if _line and not _line.startswith("#") and "=" in _line:
+                _k, _v = _line.split("=", 1)
+                os.environ.setdefault(_k.strip(), _v.strip())
+
+API_KEY = os.environ.get("NMIACM_API_KEY", "")
+
+if not API_KEY:
+    print("WARNING: NMIACM_API_KEY not set! POST endpoints will reject all requests.")
+    print("Create a .env file with: NMIACM_API_KEY=your-secret-key")
+
+
+def require_api_key(f):
+    """Decorator: require valid API key for POST endpoints."""
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        key = request.headers.get("X-API-Key", "")
+        if not API_KEY:
+            return jsonify({"error": "Server API key not configured"}), 500
+        if not key or key != API_KEY:
+            return jsonify({"error": "Invalid or missing API key", "hint": "Send header X-API-Key"}), 403
+        return f(*args, **kwargs)
+    return decorated
+
 
 STATE_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "todo_state.json")
 
@@ -249,6 +286,7 @@ def get_tasks():
 
 
 @app.route("/api/tasks/toggle", methods=["POST"])
+@require_api_key
 def toggle_task():
     """Переключить статус задачи.
 
@@ -267,6 +305,7 @@ def toggle_task():
 
 
 @app.route("/api/tasks/reset", methods=["POST"])
+@require_api_key
 def reset_tasks():
     """Сбросить весь прогресс (галочки)."""
     state = load_state()
@@ -276,6 +315,7 @@ def reset_tasks():
 
 
 @app.route("/api/reload-tasks", methods=["POST"])
+@require_api_key
 def reload_tasks():
     """Перезагрузить задачи — сбрасывает к дефолтному состоянию
     или загружает из переданного JSON body.
@@ -343,6 +383,7 @@ def get_stats():
 
 
 @app.route("/api/tasks/bulk-update", methods=["POST"])
+@require_api_key
 def bulk_update():
     """Массовое обновление задач — для удалённого управления.
 
@@ -374,5 +415,6 @@ if __name__ == "__main__":
     print("=" * 50)
     print("  NMIACM TODO Tracker")
     print("  http://0.0.0.0:5000")
+    print("  API Key: " + ("configured" if API_KEY else "NOT SET!"))
     print("=" * 50)
     app.run(host="0.0.0.0", port=5000, debug=True)

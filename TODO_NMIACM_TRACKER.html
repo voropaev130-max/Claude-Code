@@ -237,6 +237,37 @@
   .btn-export:hover{background:rgba(67,233,123,.35)}
   .btn-sync{background:rgba(0,201,255,.2);color:var(--accent5)}
   .btn-sync:hover{background:rgba(0,201,255,.35)}
+  .btn-key{background:rgba(247,151,30,.2);color:var(--accent4)}
+  .btn-key:hover{background:rgba(247,151,30,.35)}
+
+  /* Modal */
+  .modal-overlay{
+    position:fixed;inset:0;background:rgba(0,0,0,.7);
+    display:none;align-items:center;justify-content:center;
+    z-index:10001;
+  }
+  .modal-overlay.show{display:flex}
+  .modal{
+    background:var(--card);border:1px solid var(--accent);
+    border-radius:var(--radius);padding:2rem;
+    max-width:420px;width:90%;
+  }
+  .modal h3{margin-bottom:1rem;color:var(--accent)}
+  .modal input[type="text"]{
+    width:100%;padding:.6rem .8rem;
+    background:var(--bg);border:1px solid var(--border);
+    border-radius:8px;color:var(--text);font-size:.9rem;
+    margin-bottom:1rem;outline:none;
+  }
+  .modal input[type="text"]:focus{border-color:var(--accent)}
+  .modal-btns{display:flex;gap:.6rem;justify-content:flex-end}
+  .modal .btn-save{background:rgba(108,99,255,.3);color:var(--accent)}
+  .modal .btn-save:hover{background:rgba(108,99,255,.5)}
+  .modal .btn-cancel{background:rgba(255,255,255,.08);color:var(--text-dim)}
+  .modal .btn-cancel:hover{background:rgba(255,255,255,.15)}
+  .key-status{font-size:.75rem;margin-bottom:.8rem}
+  .key-status.set{color:var(--success)}
+  .key-status.unset{color:var(--accent2)}
 
   /* Toast notification */
   .toast{
@@ -300,6 +331,7 @@
   <button class="btn btn-expand" onclick="toggleAll(true)">Развернуть всё</button>
   <button class="btn btn-collapse" onclick="toggleAll(false)">Свернуть всё</button>
   <button class="btn btn-sync" onclick="syncFromServer()">Синхронизация</button>
+  <button class="btn btn-key" onclick="showKeyModal()">API-Ключ</button>
   <button class="btn btn-export" onclick="exportProgress()">Экспорт</button>
   <button class="btn btn-reset" onclick="resetAll()">Сброс</button>
 </div>
@@ -307,6 +339,18 @@
 <div class="container" id="app"></div>
 
 <div class="toast" id="toast"></div>
+
+<div class="modal-overlay" id="key-modal">
+  <div class="modal">
+    <h3>API-Ключ авторизации</h3>
+    <div class="key-status unset" id="key-status">Ключ не установлен</div>
+    <input type="text" id="key-input" placeholder="Введите API-ключ..." autocomplete="off">
+    <div class="modal-btns">
+      <button class="btn btn-cancel" onclick="hideKeyModal()">Отмена</button>
+      <button class="btn btn-save" onclick="saveApiKey()">Сохранить</button>
+    </div>
+  </div>
+</div>
 
 <div class="footer">
   NMIACM TODO Tracker — Данные: сервер (API) + localStorage (fallback)
@@ -455,9 +499,51 @@ const DEFAULT_DATA = [
 /* ─── State management (hybrid: API + localStorage) ─── */
 
 const STORAGE_KEY = "nmiacm_tracker_v2";
+const API_KEY_STORAGE = "nmiacm_api_key";
 let API_BASE = "";  // Will be set relative to current origin
 let serverOnline = false;
 let DATA = DEFAULT_DATA;
+
+/* ─── API Key management ─── */
+
+function getApiKey() {
+  return localStorage.getItem(API_KEY_STORAGE) || "";
+}
+
+function showKeyModal() {
+  const modal = document.getElementById("key-modal");
+  const input = document.getElementById("key-input");
+  const status = document.getElementById("key-status");
+  const current = getApiKey();
+  input.value = current;
+  if (current) {
+    status.textContent = "Ключ установлен: " + current.slice(0, 6) + "...";
+    status.className = "key-status set";
+  } else {
+    status.textContent = "Ключ не установлен";
+    status.className = "key-status unset";
+  }
+  modal.classList.add("show");
+  input.focus();
+}
+
+function hideKeyModal() {
+  document.getElementById("key-modal").classList.remove("show");
+}
+
+function saveApiKey() {
+  const key = document.getElementById("key-input").value.trim();
+  if (key) {
+    localStorage.setItem(API_KEY_STORAGE, key);
+    showToast("API-ключ сохранён!", "success");
+  } else {
+    localStorage.removeItem(API_KEY_STORAGE);
+    showToast("API-ключ удалён", "");
+  }
+  hideKeyModal();
+}
+
+/* ─── Utils ─── */
 
 function showToast(msg, type) {
   const t = document.getElementById("toast");
@@ -481,8 +567,17 @@ function setConnectionStatus(online) {
 async function apiCall(endpoint, method, body) {
   try {
     const opts = { method, headers: { "Content-Type": "application/json" } };
+    /* Attach API key for POST requests */
+    if (method === "POST") {
+      const key = getApiKey();
+      if (key) opts.headers["X-API-Key"] = key;
+    }
     if (body) opts.body = JSON.stringify(body);
     const resp = await fetch(API_BASE + endpoint, opts);
+    if (resp.status === 403) {
+      showToast("Ошибка авторизации! Проверьте API-ключ", "error");
+      return null;
+    }
     if (!resp.ok) throw new Error("HTTP " + resp.status);
     return await resp.json();
   } catch (e) {

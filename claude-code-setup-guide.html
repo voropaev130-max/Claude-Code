@@ -1,0 +1,1476 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Code — Інструкція з встановлення</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #0f0f1a;
+            color: #e0e0e0;
+            line-height: 1.7;
+        }
+
+        /* ===== HEADER ===== */
+        .header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            padding: 60px 20px;
+            text-align: center;
+            border-bottom: 3px solid #e77f67;
+        }
+
+        .header h1 {
+            font-size: 2.8em;
+            color: #ffffff;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+
+        .header h1 span {
+            color: #e77f67;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            color: #a0a0c0;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .header .badge {
+            display: inline-block;
+            background: #e77f67;
+            color: #fff;
+            padding: 6px 18px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+            margin-top: 15px;
+            letter-spacing: 0.5px;
+        }
+
+        /* ===== CONTAINER ===== */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* ===== TABLE OF CONTENTS ===== */
+        .toc {
+            background: #1a1a2e;
+            border: 1px solid #2a2a4a;
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 50px;
+        }
+
+        .toc h2 {
+            color: #e77f67;
+            font-size: 1.4em;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .toc-list {
+            list-style: none;
+            counter-reset: toc-counter;
+        }
+
+        .toc-list li {
+            counter-increment: toc-counter;
+            margin-bottom: 8px;
+        }
+
+        .toc-list li a {
+            color: #a0a0c0;
+            text-decoration: none;
+            font-size: 1.05em;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .toc-list li a:hover {
+            background: #2a2a4a;
+            color: #ffffff;
+        }
+
+        .toc-list li a::before {
+            content: counter(toc-counter);
+            background: #e77f67;
+            color: #fff;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85em;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        /* ===== STEP SECTIONS ===== */
+        .step-section {
+            margin-bottom: 60px;
+        }
+
+        .step-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid #2a2a4a;
+        }
+
+        .step-number {
+            background: linear-gradient(135deg, #e77f67, #c0392b);
+            color: #fff;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4em;
+            font-weight: 800;
+            flex-shrink: 0;
+        }
+
+        .step-header h2 {
+            font-size: 1.6em;
+            color: #ffffff;
+        }
+
+        /* ===== CARDS ===== */
+        .card {
+            background: #1a1a2e;
+            border: 1px solid #2a2a4a;
+            border-radius: 14px;
+            padding: 28px;
+            margin-bottom: 20px;
+        }
+
+        .card h3 {
+            color: #e77f67;
+            font-size: 1.2em;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card p, .card li {
+            color: #c0c0d8;
+            font-size: 1em;
+        }
+
+        /* ===== OS TABS ===== */
+        .os-tabs {
+            display: flex;
+            gap: 0;
+            margin-bottom: 0;
+            border-radius: 14px 14px 0 0;
+            overflow: hidden;
+        }
+
+        .os-tab {
+            flex: 1;
+            padding: 16px 20px;
+            text-align: center;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1.05em;
+            background: #12122a;
+            color: #808090;
+            border: 1px solid #2a2a4a;
+            border-bottom: none;
+            transition: all 0.25s;
+            user-select: none;
+        }
+
+        .os-tab:first-child {
+            border-radius: 14px 0 0 0;
+        }
+
+        .os-tab:last-child {
+            border-radius: 0 14px 0 0;
+        }
+
+        .os-tab.active {
+            background: #1a1a2e;
+            color: #ffffff;
+            border-color: #e77f67;
+            border-bottom: 2px solid #1a1a2e;
+        }
+
+        .os-tab .os-icon {
+            display: block;
+            font-size: 1.8em;
+            margin-bottom: 4px;
+        }
+
+        .os-content {
+            display: none;
+            background: #1a1a2e;
+            border: 1px solid #2a2a4a;
+            border-top: 2px solid #e77f67;
+            border-radius: 0 0 14px 14px;
+            padding: 28px;
+        }
+
+        .os-content.active {
+            display: block;
+        }
+
+        /* ===== CODE BLOCKS ===== */
+        .code-block {
+            background: #0d0d1a;
+            border: 1px solid #333355;
+            border-radius: 10px;
+            padding: 18px 20px;
+            margin: 14px 0;
+            font-family: 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+            font-size: 0.95em;
+            color: #a8e6cf;
+            position: relative;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .code-block .copy-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: #2a2a4a;
+            color: #a0a0c0;
+            border: 1px solid #3a3a5a;
+            padding: 5px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8em;
+            transition: all 0.2s;
+        }
+
+        .code-block .copy-btn:hover {
+            background: #e77f67;
+            color: #fff;
+            border-color: #e77f67;
+        }
+
+        .code-block .copy-btn.copied {
+            background: #27ae60;
+            color: #fff;
+            border-color: #27ae60;
+        }
+
+        .code-label {
+            display: inline-block;
+            background: #2a2a4a;
+            color: #e77f67;
+            padding: 3px 10px;
+            border-radius: 5px;
+            font-size: 0.8em;
+            font-weight: 600;
+            margin-bottom: 6px;
+            letter-spacing: 0.5px;
+        }
+
+        /* ===== BUTTONS ===== */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 28px;
+            border-radius: 10px;
+            font-size: 1em;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            border: none;
+            transition: all 0.25s;
+            letter-spacing: 0.3px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #e77f67, #c0392b);
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(231, 127, 103, 0.4);
+        }
+
+        .btn-secondary {
+            background: #2a2a4a;
+            color: #e0e0e0;
+            border: 1px solid #3a3a5a;
+        }
+
+        .btn-secondary:hover {
+            background: #3a3a5a;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #27ae60, #1e8449);
+            color: #fff;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(39, 174, 96, 0.4);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 16px;
+        }
+
+        /* ===== SUBSTEPS ===== */
+        .substeps {
+            list-style: none;
+            counter-reset: substep;
+        }
+
+        .substeps li {
+            counter-increment: substep;
+            padding: 14px 14px 14px 56px;
+            position: relative;
+            margin-bottom: 10px;
+            background: #12122a;
+            border-radius: 10px;
+            border: 1px solid #2a2a4a;
+        }
+
+        .substeps li::before {
+            content: counter(substep);
+            position: absolute;
+            left: 14px;
+            top: 14px;
+            background: #e77f67;
+            color: #fff;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85em;
+            font-weight: 700;
+        }
+
+        .substeps li strong {
+            color: #ffffff;
+        }
+
+        /* ===== ALERTS / INFO BOXES ===== */
+        .alert {
+            border-radius: 12px;
+            padding: 18px 22px;
+            margin: 16px 0;
+            display: flex;
+            gap: 14px;
+            align-items: flex-start;
+        }
+
+        .alert-icon {
+            font-size: 1.5em;
+            flex-shrink: 0;
+            line-height: 1;
+        }
+
+        .alert-info {
+            background: #0d2137;
+            border: 1px solid #1a4a6e;
+            color: #7ecbf5;
+        }
+
+        .alert-warning {
+            background: #2d2209;
+            border: 1px solid #6e5a1a;
+            color: #f5d67e;
+        }
+
+        .alert-success {
+            background: #0d2d17;
+            border: 1px solid #1a6e3a;
+            color: #7ef5a8;
+        }
+
+        .alert-danger {
+            background: #2d0d0d;
+            border: 1px solid #6e1a1a;
+            color: #f57e7e;
+        }
+
+        /* ===== SCREENSHOT PLACEHOLDER ===== */
+        .screenshot {
+            background: #12122a;
+            border: 2px dashed #3a3a5a;
+            border-radius: 12px;
+            padding: 40px 20px;
+            text-align: center;
+            color: #606080;
+            font-size: 0.95em;
+            margin: 16px 0;
+        }
+
+        .screenshot .screen-icon {
+            font-size: 2.5em;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        /* ===== CHECKLIST ===== */
+        .checklist {
+            list-style: none;
+            margin: 16px 0;
+        }
+
+        .checklist li {
+            padding: 10px 14px;
+            margin-bottom: 6px;
+            background: #12122a;
+            border-radius: 8px;
+            border: 1px solid #2a2a4a;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            user-select: none;
+        }
+
+        .checklist li:hover {
+            border-color: #e77f67;
+        }
+
+        .checklist li .check-box {
+            width: 22px;
+            height: 22px;
+            border: 2px solid #4a4a6a;
+            border-radius: 5px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            font-size: 0.8em;
+            color: transparent;
+        }
+
+        .checklist li.checked .check-box {
+            background: #27ae60;
+            border-color: #27ae60;
+            color: #fff;
+        }
+
+        .checklist li.checked {
+            color: #808090;
+            text-decoration: line-through;
+        }
+
+        /* ===== PROGRESS BAR ===== */
+        .progress-wrapper {
+            background: #1a1a2e;
+            border: 1px solid #2a2a4a;
+            border-radius: 14px;
+            padding: 24px 28px;
+            margin-bottom: 40px;
+            position: sticky;
+            top: 10px;
+            z-index: 100;
+        }
+
+        .progress-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .progress-title span {
+            font-weight: 600;
+            color: #e0e0e0;
+        }
+
+        .progress-title .progress-pct {
+            color: #e77f67;
+            font-weight: 700;
+        }
+
+        .progress-bar {
+            background: #0d0d1a;
+            border-radius: 10px;
+            height: 12px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #e77f67, #27ae60);
+            border-radius: 10px;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        /* ===== KEYBOARD KEY ===== */
+        kbd {
+            background: #2a2a4a;
+            border: 1px solid #4a4a6a;
+            border-radius: 5px;
+            padding: 2px 8px;
+            font-family: monospace;
+            font-size: 0.9em;
+            color: #e0e0e0;
+            box-shadow: 0 2px 0 #1a1a2e;
+        }
+
+        /* ===== PRICING TABLE ===== */
+        .pricing-table {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin: 20px 0;
+        }
+
+        .pricing-card {
+            background: #12122a;
+            border: 2px solid #2a2a4a;
+            border-radius: 14px;
+            padding: 24px;
+            text-align: center;
+            transition: all 0.25s;
+        }
+
+        .pricing-card.recommended {
+            border-color: #e77f67;
+            position: relative;
+        }
+
+        .pricing-card.recommended::after {
+            content: 'РЕКОМЕНДОВАНО';
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #e77f67;
+            color: #fff;
+            padding: 3px 14px;
+            border-radius: 10px;
+            font-size: 0.7em;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .pricing-card .price {
+            font-size: 2em;
+            font-weight: 800;
+            color: #ffffff;
+            margin: 10px 0;
+        }
+
+        .pricing-card .price small {
+            font-size: 0.45em;
+            color: #808090;
+            font-weight: 400;
+        }
+
+        .pricing-card .plan-name {
+            font-size: 1.2em;
+            font-weight: 700;
+            color: #e77f67;
+            margin-bottom: 6px;
+        }
+
+        .pricing-card ul {
+            list-style: none;
+            text-align: left;
+            margin-top: 16px;
+        }
+
+        .pricing-card ul li {
+            padding: 6px 0;
+            color: #a0a0c0;
+            font-size: 0.9em;
+        }
+
+        .pricing-card ul li::before {
+            content: '✓ ';
+            color: #27ae60;
+            font-weight: 700;
+        }
+
+        /* ===== FOLDER TREE ===== */
+        .folder-tree {
+            background: #0d0d1a;
+            border: 1px solid #333355;
+            border-radius: 10px;
+            padding: 20px;
+            font-family: 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+            font-size: 0.92em;
+            color: #a0a0c0;
+            margin: 14px 0;
+            line-height: 1.8;
+        }
+
+        .folder-tree .folder {
+            color: #f5d67e;
+        }
+
+        .folder-tree .file {
+            color: #7ecbf5;
+        }
+
+        .folder-tree .comment {
+            color: #606080;
+            font-style: italic;
+        }
+
+        /* ===== RESULT SECTION ===== */
+        .result-section {
+            background: linear-gradient(135deg, #0d2d17, #1a1a2e);
+            border: 2px solid #1a6e3a;
+            border-radius: 16px;
+            padding: 36px;
+            text-align: center;
+            margin-top: 40px;
+        }
+
+        .result-section h2 {
+            color: #7ef5a8;
+            font-size: 1.8em;
+            margin-bottom: 16px;
+        }
+
+        .result-section p {
+            color: #a0c0b0;
+            font-size: 1.05em;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .result-items {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 14px;
+            margin-top: 24px;
+        }
+
+        .result-item {
+            background: #0d2d17;
+            border: 1px solid #1a6e3a;
+            border-radius: 10px;
+            padding: 18px;
+        }
+
+        .result-item .ri-icon {
+            font-size: 2em;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .result-item .ri-text {
+            color: #7ef5a8;
+            font-weight: 600;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 680px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .pricing-table {
+                grid-template-columns: 1fr;
+            }
+
+            .os-tabs {
+                flex-direction: column;
+            }
+
+            .os-tab:first-child,
+            .os-tab:last-child {
+                border-radius: 0;
+            }
+
+            .btn-group {
+                flex-direction: column;
+            }
+
+            .result-items {
+                grid-template-columns: 1fr;
+            }
+
+            .progress-wrapper {
+                position: static;
+            }
+        }
+
+        /* ===== PRINT ===== */
+        @media print {
+            body { background: #fff; color: #000; }
+            .os-content { display: block !important; }
+            .progress-wrapper { display: none; }
+            .btn { border: 1px solid #999; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- =============================== HEADER =============================== -->
+<div class="header">
+    <h1><span>Claude Code</span> — Встановлення</h1>
+    <p>Покрокова інструкція для команди: від нуля до повністю налаштованого робочого середовища</p>
+    <div class="badge">Версія 1.0 | Березень 2026</div>
+</div>
+
+<div class="container">
+
+    <!-- ===== PROGRESS BAR ===== -->
+    <div class="progress-wrapper" id="progressWrapper">
+        <div class="progress-title">
+            <span>Загальний прогрес</span>
+            <span class="progress-pct" id="progressPct">0%</span>
+        </div>
+        <div class="progress-bar">
+            <div class="progress-bar-fill" id="progressFill"></div>
+        </div>
+    </div>
+
+    <!-- ===== TABLE OF CONTENTS ===== -->
+    <div class="toc">
+        <h2>&#128218; Зміст</h2>
+        <ol class="toc-list">
+            <li><a href="#step1">Реєстрація акаунту Anthropic</a></li>
+            <li><a href="#step2">Оплата підписки (Pro план)</a></li>
+            <li><a href="#step3">Встановлення Node.js</a></li>
+            <li><a href="#step4">Встановлення Claude Code</a></li>
+            <li><a href="#step5">Створення робочих папок</a></li>
+            <li><a href="#step6">Перший запуск та авторизація</a></li>
+            <li><a href="#step7">Перевірка: все працює</a></li>
+        </ol>
+    </div>
+
+    <!-- ============================================================== -->
+    <!-- КРОК 1: РЕЄСТРАЦІЯ -->
+    <!-- ============================================================== -->
+    <div class="step-section" id="step1">
+        <div class="step-header">
+            <div class="step-number">1</div>
+            <h2>Реєстрація акаунту Anthropic</h2>
+        </div>
+
+        <div class="card">
+            <h3>&#127919; Що робимо</h3>
+            <p>Створюємо акаунт на сайті Anthropic — це компанія, яка розробляє Claude.</p>
+
+            <div class="btn-group">
+                <a href="https://console.anthropic.com/" target="_blank" class="btn btn-primary">&#128279; Відкрити console.anthropic.com</a>
+            </div>
+
+            <ol class="substeps" style="margin-top: 20px;">
+                <li>
+                    <strong>Відкрийте посилання вище</strong> — відкриється сторінка реєстрації Anthropic Console.
+                </li>
+                <li>
+                    <strong>Натисніть кнопку "Sign Up"</strong> (Зареєструватися). Можна увійти через Google-акаунт або ввести email та пароль.
+                </li>
+                <li>
+                    <strong>Підтвердіть email</strong> — перевірте пошту, знайдіть лист від Anthropic і натисніть кнопку підтвердження.
+                </li>
+                <li>
+                    <strong>Увійдіть у свій акаунт</strong> — після підтвердження ви потрапите в консоль Anthropic.
+                </li>
+            </ol>
+
+            <div class="alert alert-info">
+                <div class="alert-icon">&#128161;</div>
+                <div>
+                    <strong>Порада:</strong> Використовуйте робочу email-адресу вашої компанії, щоб потім легко об'єднати акаунти в одну організацію.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================== -->
+    <!-- КРОК 2: ОПЛАТА ПІДПИСКИ -->
+    <!-- ============================================================== -->
+    <div class="step-section" id="step2">
+        <div class="step-header">
+            <div class="step-number">2</div>
+            <h2>Оплата підписки (Pro план)</h2>
+        </div>
+
+        <div class="card">
+            <h3>&#128176; Який план обрати</h3>
+            <p>Для роботи з Claude Code потрібна підписка <strong>Pro</strong> або <strong>Max</strong>. Ось порівняння:</p>
+
+            <div class="pricing-table">
+                <div class="pricing-card recommended">
+                    <div class="plan-name">Pro</div>
+                    <div class="price">$20 <small>/ місяць</small></div>
+                    <ul>
+                        <li>Доступ до Claude Code</li>
+                        <li>Базовий ліміт запитів</li>
+                        <li>Достатньо для початку</li>
+                        <li>Підходить для навчання</li>
+                    </ul>
+                </div>
+                <div class="pricing-card">
+                    <div class="plan-name">Max</div>
+                    <div class="price">$100 <small>/ місяць</small></div>
+                    <ul>
+                        <li>Все з Pro</li>
+                        <li>Значно більше запитів</li>
+                        <li>Пріоритетний доступ</li>
+                        <li>Для активної роботи</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="alert alert-warning">
+                <div class="alert-icon">&#9888;&#65039;</div>
+                <div>
+                    <strong>Важливо:</strong> Підписка оформлюється на сайті <a href="https://claude.ai" target="_blank" style="color: #f5d67e;">claude.ai</a>, а НЕ на console.anthropic.com. Це два різні сайти!
+                </div>
+            </div>
+
+            <ol class="substeps">
+                <li>
+                    <strong>Перейдіть на <a href="https://claude.ai" target="_blank" style="color: #e77f67;">claude.ai</a></strong> та увійдіть у свій акаунт (або зареєструйтесь, якщо ще не маєте).
+                </li>
+                <li>
+                    <strong>Натисніть на іконку профілю</strong> (зліва внизу) &#8594; оберіть <strong>"Upgrade to Pro"</strong> або знайдіть в <strong>Settings &#8594; Subscription</strong>.
+                </li>
+                <li>
+                    <strong>Оберіть план Pro</strong> ($20/місяць) — для старту цього достатньо.
+                </li>
+                <li>
+                    <strong>Введіть дані банківської картки</strong> та підтвердіть оплату.
+                </li>
+                <li>
+                    <strong>Готово!</strong> Тепер у вас є підписка Pro, і Claude Code буде працювати.
+                </li>
+            </ol>
+        </div>
+    </div>
+
+    <!-- ============================================================== -->
+    <!-- КРОК 3: ВСТАНОВЛЕННЯ NODE.JS -->
+    <!-- ============================================================== -->
+    <div class="step-section" id="step3">
+        <div class="step-header">
+            <div class="step-number">3</div>
+            <h2>Встановлення Node.js</h2>
+        </div>
+
+        <div class="card">
+            <h3>&#9881;&#65039; Навіщо потрібен Node.js</h3>
+            <p>Claude Code працює через <strong>npm</strong> — менеджер пакетів Node.js. Без Node.js встановити Claude Code неможливо.</p>
+
+            <div class="alert alert-info">
+                <div class="alert-icon">&#128161;</div>
+                <div>
+                    <strong>Потрібна версія:</strong> Node.js <strong>18 або новіша</strong> (рекомендуємо LTS — Long Term Support).
+                </div>
+            </div>
+        </div>
+
+        <!-- OS TABS -->
+        <div class="os-tabs">
+            <div class="os-tab active" onclick="switchOS('windows', this)">
+                <span class="os-icon">&#128187;</span>
+                Windows
+            </div>
+            <div class="os-tab" onclick="switchOS('mac', this)">
+                <span class="os-icon">&#127822;</span>
+                macOS
+            </div>
+            <div class="os-tab" onclick="switchOS('linux', this)">
+                <span class="os-icon">&#128039;</span>
+                Linux
+            </div>
+        </div>
+
+        <!-- WINDOWS -->
+        <div class="os-content active" id="os-windows">
+            <h3 style="color: #e77f67; margin-bottom: 16px;">Встановлення на Windows</h3>
+
+            <ol class="substeps">
+                <li>
+                    <strong>Завантажте інсталятор Node.js:</strong>
+                    <div class="btn-group">
+                        <a href="https://nodejs.org/" target="_blank" class="btn btn-primary">&#11015;&#65039; Завантажити Node.js (LTS)</a>
+                    </div>
+                    <p style="margin-top:8px;">На сайті натисніть велику зелену кнопку <strong>"Download Node.js (LTS)"</strong>.</p>
+                </li>
+                <li>
+                    <strong>Запустіть завантажений файл</strong> (наприклад, <code>node-v22.x.x-x64.msi</code>).
+                </li>
+                <li>
+                    <strong>У вікні інсталятора:</strong>
+                    <br>&#8594; Натисніть <strong>"Next"</strong>
+                    <br>&#8594; Прийміть ліцензію (поставте галочку) &#8594; <strong>"Next"</strong>
+                    <br>&#8594; Шлях залиште за замовчуванням &#8594; <strong>"Next"</strong>
+                    <br>&#8594; Натисніть <strong>"Install"</strong>
+                    <br>&#8594; Дочекайтесь завершення &#8594; <strong>"Finish"</strong>
+                </li>
+                <li>
+                    <strong>Перевірте встановлення.</strong> Відкрийте <strong>PowerShell</strong> (натисніть <kbd>Win</kbd> + <kbd>X</kbd>, оберіть "Terminal" або "PowerShell"):
+                    <div class="code-block">node --version<button class="copy-btn" onclick="copyCode(this)">Копіювати</button></div>
+                    <p>Має показати щось типу <code>v22.x.x</code></p>
+                    <div class="code-block">npm --version<button class="copy-btn" onclick="copyCode(this)">Копіювати</button></div>
+                    <p>Має показати щось типу <code>10.x.x</code></p>
+                </li>
+            </ol>
+
+            <div class="alert alert-warning">
+                <div class="alert-icon">&#9888;&#65039;</div>
+                <div>
+                    <strong>Якщо команди не працюють</strong> — закрийте PowerShell і відкрийте заново. Інколи потрібно перезавантажити комп'ютер.
+                </div>
+            </div>
+        </div>
+
+        <!-- MACOS -->
+        <div class="os-content" id="os-mac">
+            <h3 style="color: #e77f67; margin-bottom: 16px;">Встановлення на macOS</h3>
+
+            <p style="margin-bottom: 12px;"><strong>Варіант A: Через інсталятор (простіший)</strong></p>
+            <ol class="substeps">
+                <li>
+                    <strong>Завантажте інсталятор:</strong>
+                    <div class="btn-group">
+                        <a href="https://nodejs.org/" target="_blank" class="btn btn-primary">&#11015;&#65039; Завантажити Node.js (LTS)</a>
+                    </div>
+                    <p style="margin-top:8px;">Оберіть версію для <strong>macOS</strong>.</p>
+                </li>
+                <li>
+                    <strong>Відкрийте завантажений .pkg файл</strong> і пройдіть інсталяцію (натискайте "Continue" &#8594; "Install").
+                </li>
+                <li>
+                    <strong>Перевірте в Terminal</strong> (натисніть <kbd>Cmd</kbd> + <kbd>Пробіл</kbd>, введіть "Terminal"):
+                    <div class="code-block">node --version<button class="copy-btn" onclick="copyCode(this)">Копіювати</button></div>
+                </li>
+            </ol>
+
+            <p style="margin: 20px 0 12px;"><strong>Варіант B: Через Homebrew (для досвідчених)</strong></p>
+            <div class="code-block"><span class="code-label">Terminal</span>
+brew install node<button class="copy-btn" onclick="copyCode(this)">Копіювати</button></div>
+
+            <div class="alert alert-info">
+                <div class="alert-icon">&#128161;</div>
+                <div>
+                    <strong>Немає Homebrew?</strong> Спочатку встановіть його командою:
+                    <div class="code-block">/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"<button class="copy-btn" onclick="copyCode(this)">Копіювати</button></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- LINUX -->
+        <div class="os-content" id="os-linux">
+            <h3 style="color: #e77f67; margin-bottom: 16px;">Встановлення на Linux (Ubuntu/Debian)</h3>
+            <div class="code-block"><span class="code-label">Terminal</span>
+# Оновити список пакетів
+sudo apt update
+
+# Встановити Node.js та npm
+sudo apt install -y nodejs npm
+
+# Перевірити версію
+node --version
+npm --version<button class="copy-btn" onclick="copyCode(this)">Копіювати</button></div>
+
+            <div class="alert alert-info">
+                <div class="alert-icon">&#128161;</div>
+                <div>
+                    <strong>Якщо версія Node.js менша за 18</strong>, встановіть через NodeSource:
+                    <div class="code-block">curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
+sudo apt install -y nodejs<button class="copy-btn" onclick="copyCode(this)">Копіювати</button></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================== -->
+    <!-- КРОК 4: ВСТАНОВЛЕННЯ CLAUDE CODE -->
+    <!-- ============================================================== -->
+    <div class="step-section" id="step4">
+        <div class="step-header">
+            <div class="step-number">4</div>
+            <h2>Встановлення Claude Code</h2>
+        </div>
+
+        <div class="card">
+            <h3>&#128640; Встановлюємо Claude Code через npm</h3>
+            <p>Тепер, коли Node.js є, встановлюємо сам Claude Code однією командою.</p>
+
+            <div class="alert alert-warning">
+                <div class="alert-icon">&#9888;&#65039;</div>
+                <div>
+                    <strong>Увага (Windows):</strong> Команди потрібно виконувати в <strong>PowerShell</strong> або <strong>Windows Terminal</strong>, запущеному <strong>від імені адміністратора</strong>.
+                    <br>Натисніть <kbd>Win</kbd> + <kbd>X</kbd> &#8594; виберіть "Terminal (Admin)" або "PowerShell (Admin)".
+                </div>
+            </div>
+        </div>
+
+        <!-- OS TABS FOR INSTALL -->
+        <div class="os-tabs">
+            <div class="os-tab active" onclick="switchOS2('windows2', this)">
+                <span class="os-icon">&#128187;</span>
+                Windows
+            </div>
+            <div class="os-tab" onclick="switchOS2('mac2', this)">
+                <span class="os-icon">&#127822;</span>
+                macOS
+            </div>
+            <div class="os-tab" onclick="switchOS2('linux2', this)">
+                <span class="os-icon">&#128039;</span>
+                Linux
+            </div>
+        </div>
+
+        <div class="os-content active" id="os-windows2">
+            <h3 style="color: #e77f67; margin-bottom: 16px;">Windows</h3>
+            <ol class="substeps">
+                <li>
+                    <strong>Відкрийте PowerShell від імені адміністратора</strong>
+                    (<kbd>Win</kbd> + <kbd>X</kbd> &#8594; "Terminal (Admin)")
+                </li>
+                <li>
+                    <strong>Виконайте команду встановлення:</strong>
+                    <div class="code-block">npm install -g @anthropic-ai/claude-code<button class="copy-btn" onclick="copyCode(this)">Копіювати</button></div>
+                </li>
+                <li>
+                    <strong>Дочекайтесь завершення.</strong> Ви побачите повідомлення про успішне встановлення.
+                </li>
+                <li>
+                    <strong>Перевірте, що Claude Code встановлено:</strong>
+                    <div class="code-block">claude --version<button class="copy-btn" onclick="copyCode(this)">Копіювати</button></div>
+                    <p>Має показати номер версії, наприклад <code>1.x.x</code></p>
+                </li>
+            </ol>
+        </div>
+
+        <div class="os-content" id="os-mac2">
+            <h3 style="color: #e77f67; margin-bottom: 16px;">macOS</h3>
+            <ol class="substeps">
+                <li>
+                    <strong>Відкрийте Terminal</strong>
+                    (<kbd>Cmd</kbd> + <kbd>Пробіл</kbd> &#8594; введіть "Terminal" &#8594; Enter)
+                </li>
+                <li>
+                    <strong>Виконайте команду встановлення:</strong>
+                    <div class="code-block">npm install -g @anthropic-ai/claude-code<button class="copy-btn" onclick="copyCode(this)">Копіювати</button></div>
+                </li>
+                <li>
+                    <strong>Якщо з'являється помилка з правами доступу</strong>, додайте <code>sudo</code>:
+                    <div class="code-block">sudo npm install -g @anthropic-ai/claude-code<button class="copy-btn" onclick="copyCode(this)">Копіювати</button></div>
+                    <p>Введіть пароль від вашого Mac (символи не відображатимуться — це нормально).</p>
+                </li>
+                <li>
+                    <strong>Перевірте:</strong>
+                    <div class="code-block">claude --version<button class="copy-btn" onclick="copyCode(this)">Копіювати</button></div>
+                </li>
+            </ol>
+        </div>
+
+        <div class="os-content" id="os-linux2">
+            <h3 style="color: #e77f67; margin-bottom: 16px;">Linux</h3>
+            <ol class="substeps">
+                <li>
+                    <strong>Відкрийте термінал</strong>
+                </li>
+                <li>
+                    <strong>Виконайте команду:</strong>
+                    <div class="code-block">sudo npm install -g @anthropic-ai/claude-code<button class="copy-btn" onclick="copyCode(this)">Копіювати</button></div>
+                </li>
+                <li>
+                    <strong>Перевірте:</strong>
+                    <div class="code-block">claude --version<button class="copy-btn" onclick="copyCode(this)">Копіювати</button></div>
+                </li>
+            </ol>
+        </div>
+    </div>
+
+    <!-- ============================================================== -->
+    <!-- КРОК 5: СТВОРЕННЯ РОБОЧИХ ПАПОК -->
+    <!-- ============================================================== -->
+    <div class="step-section" id="step5">
+        <div class="step-header">
+            <div class="step-number">5</div>
+            <h2>Створення робочих папок</h2>
+        </div>
+
+        <div class="card">
+            <h3>&#128193; Структура папок для роботи</h3>
+            <p>Створимо зручну структуру папок, щоб усі проєкти були організовані.</p>
+
+            <div class="folder-tree">
+<span class="folder">&#128193; C:\Users\ВашеІмя\</span>   <span class="comment">(або /Users/ВашеІмя/ на Mac)</span>
+  <span class="folder">&#128194; claude-projects\</span>       <span class="comment">&#8592; головна папка для всіх проєктів</span>
+    <span class="folder">&#128194; project-1\</span>            <span class="comment">&#8592; перший проєкт</span>
+    <span class="folder">&#128194; project-2\</span>            <span class="comment">&#8592; другий проєкт</span>
+    <span class="folder">&#128194; sandbox\</span>              <span class="comment">&#8592; папка для тестів та експериментів</span>
+            </div>
+        </div>
+
+        <!-- OS TABS FOR FOLDERS -->
+        <div class="os-tabs">
+            <div class="os-tab active" onclick="switchOS3('windows3', this)">
+                <span class="os-icon">&#128187;</span>
+                Windows
+            </div>
+            <div class="os-tab" onclick="switchOS3('mac3', this)">
+                <span class="os-icon">&#127822;</span>
+                macOS / Linux
+            </div>
+        </div>
+
+        <div class="os-content active" id="os-windows3">
+            <h3 style="color: #e77f67; margin-bottom: 16px;">Windows (PowerShell)</h3>
+            <div class="code-block"><span class="code-label">PowerShell</span>
+# Створити головну папку для проєктів
+mkdir $HOME\claude-projects
+
+# Створити папку для тестів
+mkdir $HOME\claude-projects\sandbox
+
+# Перейти в папку
+cd $HOME\claude-projects\sandbox<button class="copy-btn" onclick="copyCode(this)">Копіювати</button></div>
+
+            <div class="alert alert-info">
+                <div class="alert-icon">&#128161;</div>
+                <div>
+                    <strong>$HOME</strong> — це ваша домашня папка, наприклад <code>C:\Users\Іван</code>. PowerShell підставить її автоматично.
+                </div>
+            </div>
+        </div>
+
+        <div class="os-content" id="os-mac3">
+            <h3 style="color: #e77f67; margin-bottom: 16px;">macOS / Linux (Terminal)</h3>
+            <div class="code-block"><span class="code-label">Terminal</span>
+# Створити головну папку для проєктів
+mkdir -p ~/claude-projects/sandbox
+
+# Перейти в папку
+cd ~/claude-projects/sandbox<button class="copy-btn" onclick="copyCode(this)">Копіювати</button></div>
+
+            <div class="alert alert-info">
+                <div class="alert-icon">&#128161;</div>
+                <div>
+                    <strong>~</strong> (тільда) — це скорочення для вашої домашньої папки, наприклад <code>/Users/ivan</code>.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================== -->
+    <!-- КРОК 6: ПЕРШИЙ ЗАПУСК -->
+    <!-- ============================================================== -->
+    <div class="step-section" id="step6">
+        <div class="step-header">
+            <div class="step-number">6</div>
+            <h2>Перший запуск та авторизація</h2>
+        </div>
+
+        <div class="card">
+            <h3>&#128272; Запускаємо Claude Code вперше</h3>
+            <p>Тепер запустимо Claude Code і підключимо його до вашого акаунту.</p>
+
+            <ol class="substeps">
+                <li>
+                    <strong>Переконайтесь, що ви в робочій папці:</strong>
+                    <div class="code-block">cd ~/claude-projects/sandbox<button class="copy-btn" onclick="copyCode(this)">Копіювати</button></div>
+                    <p style="margin-top:4px; color:#808090; font-size:0.9em;">(На Windows: <code>cd $HOME\claude-projects\sandbox</code>)</p>
+                </li>
+                <li>
+                    <strong>Запустіть Claude Code:</strong>
+                    <div class="code-block">claude<button class="copy-btn" onclick="copyCode(this)">Копіювати</button></div>
+                    <p>Так, просто одне слово <code>claude</code> — і натисніть <kbd>Enter</kbd>.</p>
+                </li>
+                <li>
+                    <strong>Відкриється вікно авторизації.</strong> Claude Code покаже посилання або відкриє браузер автоматично. Вам потрібно:
+                    <br>&#8594; Увійти в акаунт <strong>claude.ai</strong> (той самий, де ви оплатили підписку)
+                    <br>&#8594; Натиснути <strong>"Allow"</strong> (Дозволити), щоб Claude Code міг працювати з вашим акаунтом
+                </li>
+                <li>
+                    <strong>Поверніться в термінал.</strong> Ви побачите привітання від Claude Code — це означає, що все працює!
+                </li>
+            </ol>
+
+            <div class="alert alert-success">
+                <div class="alert-icon">&#9989;</div>
+                <div>
+                    <strong>Вітаю!</strong> Якщо ви бачите інтерфейс Claude Code в терміналі — авторизація пройшла успішно. Тепер можна працювати!
+                </div>
+            </div>
+
+            <div class="alert alert-warning">
+                <div class="alert-icon">&#9888;&#65039;</div>
+                <div>
+                    <strong>Помилка авторизації?</strong> Переконайтесь, що:
+                    <br>1. У вас оплачена підписка Pro або Max на <strong>claude.ai</strong>
+                    <br>2. Ви входите в <strong>той самий</strong> акаунт, де оформлена підписка
+                    <br>3. Ваш інтернет працює стабільно
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>&#9000;&#65039; Корисні команди Claude Code</h3>
+            <p>Ось основні команди, які вам знадобляться:</p>
+
+            <table style="width:100%; margin-top: 14px; border-collapse: collapse;">
+                <thead>
+                    <tr style="border-bottom: 2px solid #2a2a4a;">
+                        <th style="text-align:left; padding: 10px; color: #e77f67;">Команда</th>
+                        <th style="text-align:left; padding: 10px; color: #e77f67;">Що робить</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr style="border-bottom: 1px solid #1a1a2e;">
+                        <td style="padding: 10px;"><code>claude</code></td>
+                        <td style="padding: 10px;">Запустити Claude Code в поточній папці</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #1a1a2e;">
+                        <td style="padding: 10px;"><code>/help</code></td>
+                        <td style="padding: 10px;">Показати довідку (вводити всередині Claude Code)</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #1a1a2e;">
+                        <td style="padding: 10px;"><code>/clear</code></td>
+                        <td style="padding: 10px;">Очистити контекст розмови</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #1a1a2e;">
+                        <td style="padding: 10px;"><code>/compact</code></td>
+                        <td style="padding: 10px;">Стиснути контекст (заощадити запити)</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #1a1a2e;">
+                        <td style="padding: 10px;"><kbd>Ctrl</kbd> + <kbd>C</kbd></td>
+                        <td style="padding: 10px;">Перервати поточну дію Claude</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px;"><kbd>Ctrl</kbd> + <kbd>D</kbd></td>
+                        <td style="padding: 10px;">Вийти з Claude Code</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ============================================================== -->
+    <!-- КРОК 7: ПЕРЕВІРКА -->
+    <!-- ============================================================== -->
+    <div class="step-section" id="step7">
+        <div class="step-header">
+            <div class="step-number">7</div>
+            <h2>Перевірка: все працює</h2>
+        </div>
+
+        <div class="card">
+            <h3>&#128270; Фінальний чек-ліст</h3>
+            <p>Пройдіться по списку і переконайтесь, що все виконано:</p>
+
+            <ul class="checklist" id="finalChecklist">
+                <li onclick="toggleCheck(this)">
+                    <span class="check-box">&#10003;</span>
+                    <span>Акаунт на <strong>claude.ai</strong> створено</span>
+                </li>
+                <li onclick="toggleCheck(this)">
+                    <span class="check-box">&#10003;</span>
+                    <span>Підписка <strong>Pro</strong> ($20/міс) оплачена</span>
+                </li>
+                <li onclick="toggleCheck(this)">
+                    <span class="check-box">&#10003;</span>
+                    <span><strong>Node.js</strong> встановлено (версія 18+)</span>
+                </li>
+                <li onclick="toggleCheck(this)">
+                    <span class="check-box">&#10003;</span>
+                    <span>Команда <code>node --version</code> працює</span>
+                </li>
+                <li onclick="toggleCheck(this)">
+                    <span class="check-box">&#10003;</span>
+                    <span><strong>Claude Code</strong> встановлено через npm</span>
+                </li>
+                <li onclick="toggleCheck(this)">
+                    <span class="check-box">&#10003;</span>
+                    <span>Команда <code>claude --version</code> працює</span>
+                </li>
+                <li onclick="toggleCheck(this)">
+                    <span class="check-box">&#10003;</span>
+                    <span>Папка <strong>claude-projects</strong> створена</span>
+                </li>
+                <li onclick="toggleCheck(this)">
+                    <span class="check-box">&#10003;</span>
+                    <span>Claude Code <strong>запущено</strong> та <strong>авторизовано</strong></span>
+                </li>
+            </ul>
+        </div>
+
+        <!-- RESULT -->
+        <div class="result-section">
+            <h2>&#127881; Готово! Все налаштовано!</h2>
+            <p>Після виконання всіх кроків у вас має бути:</p>
+
+            <div class="result-items">
+                <div class="result-item">
+                    <span class="ri-icon">&#128100;</span>
+                    <span class="ri-text">Акаунт Anthropic</span>
+                </div>
+                <div class="result-item">
+                    <span class="ri-icon">&#128179;</span>
+                    <span class="ri-text">Підписка Pro</span>
+                </div>
+                <div class="result-item">
+                    <span class="ri-icon">&#9881;&#65039;</span>
+                    <span class="ri-text">Node.js + npm</span>
+                </div>
+                <div class="result-item">
+                    <span class="ri-icon">&#129302;</span>
+                    <span class="ri-text">Claude Code CLI</span>
+                </div>
+                <div class="result-item">
+                    <span class="ri-icon">&#128193;</span>
+                    <span class="ri-text">Робочі папки</span>
+                </div>
+                <div class="result-item">
+                    <span class="ri-icon">&#128275;</span>
+                    <span class="ri-text">Авторизація</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================== -->
+    <!-- FAQ -->
+    <!-- ============================================================== -->
+    <div class="step-section" style="margin-top: 60px;">
+        <div class="step-header">
+            <div class="step-number" style="background: linear-gradient(135deg, #3498db, #2980b9);">?</div>
+            <h2>Часті запитання (FAQ)</h2>
+        </div>
+
+        <div class="card">
+            <h3>&#128172; Що робити, якщо npm install видає помилку?</h3>
+            <p><strong>Windows:</strong> Запустіть PowerShell від імені адміністратора (<kbd>Win</kbd> + <kbd>X</kbd> &#8594; Terminal (Admin)).</p>
+            <p><strong>macOS/Linux:</strong> Додайте <code>sudo</code> перед командою.</p>
+        </div>
+
+        <div class="card">
+            <h3>&#128172; Claude Code каже "subscription required"</h3>
+            <p>Переконайтесь, що підписка оформлена на <strong>claude.ai</strong>, і ви авторизуєтесь тим самим акаунтом. Підписка на console.anthropic.com (API) — це інша підписка.</p>
+        </div>
+
+        <div class="card">
+            <h3>&#128172; Як оновити Claude Code до нової версії?</h3>
+            <div class="code-block">npm update -g @anthropic-ai/claude-code<button class="copy-btn" onclick="copyCode(this)">Копіювати</button></div>
+        </div>
+
+        <div class="card">
+            <h3>&#128172; Чи можна використовувати Claude Code у VS Code?</h3>
+            <p>Так! Просто відкрийте вбудований термінал у VS Code (<kbd>Ctrl</kbd> + <kbd>`</kbd>) і виконайте <code>claude</code>. Claude Code працюватиме прямо у вашому редакторі.</p>
+        </div>
+
+        <div class="card">
+            <h3>&#128172; Скільки запитів можна робити на Pro плані?</h3>
+            <p>Точний ліміт Anthropic не розголошує, але на Pro плані його достатньо для активної роботи протягом дня. Якщо ліміт вичерпано — почекайте кілька годин або перейдіть на Max план.</p>
+        </div>
+    </div>
+
+</div><!-- end .container -->
+
+<!-- ===== SCRIPTS ===== -->
+<script>
+    // --- OS Tab Switching (Step 3) ---
+    function switchOS(osId, tabEl) {
+        document.querySelectorAll('#step3 .os-content').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('#step3 .os-tab').forEach(t => t.classList.remove('active'));
+        document.getElementById('os-' + osId).classList.add('active');
+        tabEl.classList.add('active');
+    }
+
+    // --- OS Tab Switching (Step 4) ---
+    function switchOS2(osId, tabEl) {
+        document.querySelectorAll('#step4 .os-content').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('#step4 .os-tab').forEach(t => t.classList.remove('active'));
+        document.getElementById('os-' + osId).classList.add('active');
+        tabEl.classList.add('active');
+    }
+
+    // --- OS Tab Switching (Step 5) ---
+    function switchOS3(osId, tabEl) {
+        document.querySelectorAll('#step5 .os-content').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('#step5 .os-tab').forEach(t => t.classList.remove('active'));
+        document.getElementById('os-' + osId).classList.add('active');
+        tabEl.classList.add('active');
+    }
+
+    // --- Copy Code ---
+    function copyCode(btn) {
+        const codeBlock = btn.parentElement;
+        const text = codeBlock.innerText.replace('Копіювати', '').replace('Скопійовано!', '').trim();
+        // Remove the code-label text if present
+        const label = codeBlock.querySelector('.code-label');
+        let cleanText = text;
+        if (label) {
+            cleanText = text.replace(label.innerText, '').trim();
+        }
+        navigator.clipboard.writeText(cleanText).then(() => {
+            btn.textContent = 'Скопійовано!';
+            btn.classList.add('copied');
+            setTimeout(() => {
+                btn.textContent = 'Копіювати';
+                btn.classList.remove('copied');
+            }, 2000);
+        });
+    }
+
+    // --- Checklist ---
+    function toggleCheck(li) {
+        li.classList.toggle('checked');
+        updateProgress();
+    }
+
+    // --- Progress Bar ---
+    function updateProgress() {
+        const items = document.querySelectorAll('#finalChecklist li');
+        const checked = document.querySelectorAll('#finalChecklist li.checked');
+        const pct = Math.round((checked.length / items.length) * 100);
+        document.getElementById('progressFill').style.width = pct + '%';
+        document.getElementById('progressPct').textContent = pct + '%';
+    }
+
+    // --- Smooth scroll for TOC ---
+    document.querySelectorAll('.toc-list a').forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        });
+    });
+</script>
+
+</body>
+</html>

@@ -726,6 +726,133 @@
             }
         }
 
+        /* ===== AUTO INSTALLER SECTION ===== */
+        .auto-installer {
+            background: linear-gradient(135deg, #0d2d17 0%, #1a2e1a 50%, #1a1a2e 100%);
+            border: 2px solid #27ae60;
+            border-radius: 18px;
+            padding: 36px;
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        .auto-installer h2 {
+            color: #7ef5a8;
+            font-size: 1.6em;
+            margin-bottom: 8px;
+        }
+
+        .auto-installer > p {
+            color: #a0c0b0;
+            margin-bottom: 24px;
+            font-size: 1.05em;
+        }
+
+        .installer-cards {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+            margin-bottom: 24px;
+        }
+
+        .installer-card {
+            background: #0d1a12;
+            border: 1px solid #1a4a2a;
+            border-radius: 14px;
+            padding: 28px 20px;
+            transition: all 0.25s;
+        }
+
+        .installer-card:hover {
+            border-color: #27ae60;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(39, 174, 96, 0.2);
+        }
+
+        .installer-card .ic-icon {
+            font-size: 3em;
+            display: block;
+            margin-bottom: 12px;
+        }
+
+        .installer-card h3 {
+            color: #7ef5a8;
+            margin-bottom: 8px;
+            font-size: 1.15em;
+        }
+
+        .installer-card p {
+            color: #809880;
+            font-size: 0.9em;
+            margin-bottom: 16px;
+        }
+
+        .installer-card .btn {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .installer-how {
+            background: #0d1a12;
+            border: 1px solid #1a4a2a;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: left;
+            margin-top: 20px;
+        }
+
+        .installer-how h4 {
+            color: #7ef5a8;
+            margin-bottom: 12px;
+            font-size: 1em;
+        }
+
+        .installer-how ol {
+            padding-left: 20px;
+            color: #a0c0b0;
+        }
+
+        .installer-how ol li {
+            margin-bottom: 6px;
+            font-size: 0.95em;
+        }
+
+        .installer-how code {
+            background: #0d0d1a;
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #a8e6cf;
+            font-size: 0.9em;
+        }
+
+        .or-divider {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin: 30px 0;
+            color: #606080;
+        }
+
+        .or-divider::before,
+        .or-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: #2a2a4a;
+        }
+
+        .or-divider span {
+            font-weight: 600;
+            font-size: 0.95em;
+            color: #808090;
+        }
+
+        @media (max-width: 680px) {
+            .installer-cards {
+                grid-template-columns: 1fr;
+            }
+        }
+
         /* ===== PRINT ===== */
         @media print {
             body { background: #fff; color: #000; }
@@ -755,6 +882,64 @@
         <div class="progress-bar">
             <div class="progress-bar-fill" id="progressFill"></div>
         </div>
+    </div>
+
+    <!-- ===== AUTO INSTALLER ===== -->
+    <div class="auto-installer">
+        <h2>&#9889; Автоматичне встановлення (Рекомендовано)</h2>
+        <p>Не хочете виконувати все вручну? Завантажте скрипт — він зробить все сам: встановить Node.js, Claude Code і створить папки.</p>
+
+        <div class="installer-cards">
+            <div class="installer-card">
+                <span class="ic-icon">&#128187;</span>
+                <h3>Windows</h3>
+                <p>PowerShell-скрипт для Windows 10/11</p>
+                <a href="install-claude-code.ps1" download class="btn btn-success">&#11015;&#65039; Завантажити для Windows</a>
+            </div>
+            <div class="installer-card">
+                <span class="ic-icon">&#127822;</span>
+                <h3>macOS / Linux</h3>
+                <p>Bash-скрипт для macOS та Linux (Ubuntu, Debian, Fedora)</p>
+                <a href="install-claude-code.sh" download class="btn btn-success">&#11015;&#65039; Завантажити для macOS / Linux</a>
+            </div>
+        </div>
+
+        <div class="installer-how">
+            <h4>&#128221; Як запустити інсталятор:</h4>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div>
+                    <strong style="color: #7ef5a8;">Windows:</strong>
+                    <ol>
+                        <li>Завантажте файл <code>install-claude-code.ps1</code></li>
+                        <li>Натисніть на нього <strong>правою кнопкою</strong></li>
+                        <li>Оберіть <strong>"Запустити з PowerShell"</strong></li>
+                        <li>Якщо з'явиться запит — натисніть <strong>"Так"</strong> (дозволити)</li>
+                        <li>Скрипт зробить все сам!</li>
+                    </ol>
+                </div>
+                <div>
+                    <strong style="color: #7ef5a8;">macOS / Linux:</strong>
+                    <ol>
+                        <li>Завантажте файл <code>install-claude-code.sh</code></li>
+                        <li>Відкрийте <strong>Terminal</strong></li>
+                        <li>Перейдіть в папку з файлом:<br><code>cd ~/Downloads</code></li>
+                        <li>Дайте права:<br><code>chmod +x install-claude-code.sh</code></li>
+                        <li>Запустіть:<br><code>./install-claude-code.sh</code></li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+
+        <div class="alert alert-info" style="margin-top: 20px; text-align: left;">
+            <div class="alert-icon">&#128161;</div>
+            <div>
+                <strong>Після інсталятора</strong> вам залишиться лише: 1) Оформити підписку Pro на <a href="https://claude.ai" target="_blank" style="color: #7ecbf5;">claude.ai</a> (Крок 2 нижче), 2) Запустити <code>claude</code> і авторизуватись (Крок 6).
+            </div>
+        </div>
+    </div>
+
+    <div class="or-divider">
+        <span>АБО ВСТАНОВІТЬ ВРУЧНУ (покрокова інструкція нижче)</span>
     </div>
 
     <!-- ===== TABLE OF CONTENTS ===== -->
